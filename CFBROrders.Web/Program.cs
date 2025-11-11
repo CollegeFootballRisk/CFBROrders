@@ -9,37 +9,64 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 using NLog.Web;
+using Radzen;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
 logger.Debug("init main");
 
 var builder = WebApplication.CreateBuilder(args);
-
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-CFBROrdersDatabaseFactory.Setup(connectionString);
-
-builder.Services.AddDbContext<ApplicationDBContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+var connectionString = builder.Configuration.GetConnectionString("CFBROrdersConnectionString") ?? throw new InvalidOperationException("Connection string 'CFBROrdersConnectionString' not found.");
 
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
 
-builder.Logging.ClearProviders();
-builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
-builder.Host.UseNLog();
+builder.Services.AddDbContext<ApplicationDBContext>(options =>
+    options.UseNpgsql(connectionString));
 
 //builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
 //    .AddRoles<IdentityRole>()
 //    .AddEntityFrameworkStores<ApplicationDBContext>();
 
-//builder.Services.AddScoped<IOperationResult, DBOperationResult>();
+builder.Services.AddRadzenComponents();
+builder.Services.AddServerSideBlazor();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdmin",
+        policy => policy.RequireRole("Admin"));
+});
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // Cookie settings
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    options.Cookie.SameSite = SameSiteMode.None;
+
+    options.LoginPath = "/login";
+    options.AccessDeniedPath = "/access-denied";
+    options.SlidingExpiration = true;
+});
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.HttpOnly = false;
+    options.Cookie.SameSite = SameSiteMode.None;
+});
+
+builder.Logging.ClearProviders();
+builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
+builder.Host.UseNLog();
+
+CFBROrdersDatabaseFactory.Setup(connectionString);
+
+//builder.Services.AddScoped<IOperationResult, DBOperationResult>();
 builder.Services.AddScoped<IUnitOfWork, NPocoUnitOfWork>();
+//builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
+
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<ITerritoriesService, TerritoriesService>();
 builder.Services.AddScoped<ITeamsService, TeamsService>();
-
-//builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
 
 var app = builder.Build();
 
@@ -49,10 +76,15 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseAuthentication();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-//app.UseAntiforgery();
+
+app.UseRouting();
+
+app.UseSession();
+app.UseAuthorization();
+
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-app.UseRouting();
 app.Run();
