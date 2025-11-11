@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject ILogger<AddOrders> Logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
 
 <h2>Add Orders</h2>
 <hr />
@@ -111,9 +112,6 @@
     {
         try
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
             currentDay = pastDay + 1;
             starPower = TeamsService.GetTeamStarPowerForTurn(team, season, pastDay);
 

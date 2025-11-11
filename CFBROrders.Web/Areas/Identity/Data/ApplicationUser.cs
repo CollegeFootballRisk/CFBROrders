@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace CFBROrders.Web.Areas.Identity.Data
 {
-    public class ApplicationUser 
+    public class ApplicationUser : IdentityUser
     {
         public int id { get; set; }
         public string uname { get; set; }

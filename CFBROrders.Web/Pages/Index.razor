@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject ILogger<Index> Logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
 
 <h2>Users Table</h2>
 
@@ -74,12 +75,6 @@ else
     {
         try
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            usersList = UsersService.GetAllUsers(userId);
         }
         catch (Exception ex)
         {
