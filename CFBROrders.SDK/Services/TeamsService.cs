@@ -1,5 +1,4 @@
-﻿using CFBROrders.SDK.Data;
-using CFBROrders.SDK.Interfaces;
+﻿using CFBROrders.SDK.Interfaces;
 using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
@@ -16,14 +15,11 @@ namespace CFBROrders.SDK.Services
     {
         public IUnitOfWork UnitOfWork { get; set; }
 
-        private readonly ApplicationDBContext _context;
-
         private ILogger _logger;
 
-        public TeamsService(IUnitOfWork unitOfWork, ApplicationDBContext context, ILogger<TeamsService> logger)
+        public TeamsService(IUnitOfWork unitOfWork, ILogger<TeamsService> logger)
         {
             UnitOfWork = unitOfWork;
-            _context = context;
             _logger = logger;
         }
 
@@ -40,7 +36,7 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while fetching starpower for {tname}: Season {season}, Day {day}");
-                return 0.0;
+                throw;
             }
             
         }

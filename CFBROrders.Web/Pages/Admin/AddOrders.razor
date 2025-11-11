@@ -1,6 +1,7 @@
 ﻿@page "/admin/AddOrders"
 @layout MainLayout
 @using System.Text.Json
+@using CFBROrders.SDK.Models
 @inject ILogger<AddOrders> Logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -13,7 +14,7 @@
 
 <h3>Defendable Territories</h3>
 <RadzenDataGrid Data="@territoryOwnershipWithNeighborsList"
-                TItem="TerritoryOwnershipWithNeighbor"
+                TItem="TerritoryOwnershipWithNeighbors"
                 class="w-100"
                 ShowPagingSummary="true"
                 AllowFiltering="true"
@@ -22,9 +23,9 @@
                 PageSize="@pageSize"
                 PageSizeOptions="@pagingOptions">
     <Columns>
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory" />
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbors" Property="Name" Title="Territory" />
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Neighbors and Owners">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbors" Title="Neighbors and Owners">
             <Template Context="territory">
                 @{
                     var opposingNeighbors = territory.NeighborList
@@ -48,7 +49,7 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Priority">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbors" Title="Priority">
             <Template Context="territory">
                 <RadzenDropDown @bind-Value="territory.Priority"
                                 Data="@priorityOptions"
@@ -78,7 +79,7 @@
         <RadzenDataGridColumn TItem="(string Name, string Owner)" Title="Owner">
             <Template Context="n">@n.Owner</Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Priority">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbors" Title="Priority">
             <Template Context="territory">
                 <RadzenDropDown @bind-Value="territory.Priority"
                                 Data="@priorityOptions"
@@ -95,7 +96,7 @@
 
 
 @code {
-    private List<TerritoryOwnershipWithNeighbor>? territoryOwnershipWithNeighborsList;
+    private List<TerritoryOwnershipWithNeighbors>? territoryOwnershipWithNeighborsList;
     private List<(string Name, string Owner)> attackableTerritories = new();
 
     int pageSize = 10;
@@ -129,7 +130,7 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error loading territory ownership data");
-            territoryOwnershipWithNeighborsList = new List<TerritoryOwnershipWithNeighbor>();
+            territoryOwnershipWithNeighborsList = new List<TerritoryOwnershipWithNeighbors>();
         }
     }
 
@@ -139,7 +140,7 @@
 
         try
         {
-            var neighbors = JsonSerializer.Deserialize<List<TerritoryOwnershipWithNeighbor.Neighbor>>(neighborsJson);
+            var neighbors = JsonSerializer.Deserialize<List<Neighbor>>(neighborsJson);
             if (neighbors == null || !neighbors.Any()) return string.Empty;
 
             return string.Join(", ", neighbors.Select(n => $"{n.name} ({n.owner})"));

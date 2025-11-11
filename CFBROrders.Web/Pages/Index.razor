@@ -68,7 +68,7 @@ else
 }
 
 @code {
-    private List<User>? usersList;
+    private List<Users>? usersList;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,7 +84,7 @@ else
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to load users");
-            usersList = new List<User>();
+            usersList = new List<Users>();
         }
     }
 }

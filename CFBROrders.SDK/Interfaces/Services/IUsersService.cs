@@ -9,6 +9,6 @@ namespace CFBROrders.SDK.Interfaces.Services
 {
     public interface IUsersService
     {
-        public List<User> GetAllUsers(string userId);
+        public List<Users> GetAllUsers(string userId);
     }
 }

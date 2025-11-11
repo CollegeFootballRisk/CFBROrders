@@ -1,5 +1,4 @@
-﻿using CFBROrders.SDK.Data;
-using CFBROrders.SDK.Interfaces;
+﻿using CFBROrders.SDK.Interfaces;
 using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
@@ -17,23 +16,21 @@ namespace CFBROrders.SDK.Services
     {
         public IUnitOfWork UnitOfWork { get; set; }
 
-        private readonly ApplicationDBContext _context;
 
         private ILogger _logger;
 
-        public UsersService(IUnitOfWork unitOfWork, ApplicationDBContext context, ILogger<UsersService> logger)
+        public UsersService(IUnitOfWork unitOfWork, ILogger<UsersService> logger)
         {
             UnitOfWork = unitOfWork;
-            _context = context;
             _logger = logger;
         }
 
-        public List<User> GetAllUsers(string userId)
+        public List<Users> GetAllUsers(string userId)
         {
-            var users = new List<User>();
+            var users = new List<Users>();
             try
             {
-                users = ((NPocoUnitOfWork)UnitOfWork).db.Fetch<User>(
+                users = ((NPocoUnitOfWork)UnitOfWork).db.Fetch<Users>(
                     @"SELECT 
                         id,
                         uname::text AS uname,

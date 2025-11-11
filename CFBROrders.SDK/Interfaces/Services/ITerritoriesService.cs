@@ -9,7 +9,7 @@ namespace CFBROrders.SDK.Interfaces.Services
 {
     public interface ITerritoriesService
     {
-        public List<TerritoryOwnershipWithNeighbor> GetTerritoryOwnershipWithNeighbors(int season, int day, string team);
+        public List<TerritoryOwnershipWithNeighbors> GetTerritoryOwnershipWithNeighbors(int season, int day, string team);
 
         public List<(string Name, string Owner)> GetAttackableTerritories(string team, int season, int day);
     }

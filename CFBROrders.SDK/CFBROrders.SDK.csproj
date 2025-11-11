@@ -13,4 +13,23 @@
     <PackageReference Include="NPoco" Version="6.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Models\GenerateModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>GenerateModel.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Models\GenerateModel.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GenerateModel.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
