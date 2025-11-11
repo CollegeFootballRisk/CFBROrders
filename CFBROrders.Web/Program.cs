@@ -76,8 +76,51 @@ builder.Services.AddAuthentication(options =>
                 context.RunClaimActions(user.RootElement);
             }
         };
-    });
+    })
+    .AddOAuth("Reddit", options =>
+    {
+        var redditAuth = builder.Configuration.GetSection("Authentication:Reddit");
+        options.ClientId = redditAuth["ClientId"]!;
+        options.ClientSecret = redditAuth["ClientSecret"]!;
+        options.CallbackPath = redditAuth["CallbackPath"]; // e.g., "/signin-reddit"
 
+        options.AuthorizationEndpoint = "https://www.reddit.com/api/v1/authorize";
+        options.TokenEndpoint = "https://www.reddit.com/api/v1/access_token";
+        options.UserInformationEndpoint = "https://oauth.reddit.com/api/v1/me";
+
+        options.Scope.Add("identity");
+        options.SaveTokens = true;
+
+        options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+
+        var httpClient = new HttpClient(new HttpClientHandler());
+        httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Basic",
+                Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{options.ClientId}:{options.ClientSecret}"))
+            );
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "CFBROrders/0.1 by Disastrous_Rush4196");
+
+        options.Backchannel = httpClient;
+
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = async context =>
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                request.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
+                request.Headers.Add("User-Agent", "CFBROrders/0.1 by Disastrous_Rush4196");
+
+                var response = await context.Backchannel.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                using var user = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                context.RunClaimActions(user.RootElement);
+            }
+        };
+    });
 
 builder.Services.AddRadzenComponents();
 builder.Services.AddServerSideBlazor();
@@ -141,12 +184,6 @@ app.MapGet("/auth-discord", async (HttpContext ctx) =>
     });
 });
 
-app.MapPost("/logout", async (HttpContext ctx) =>
-{
-    await ctx.SignOutAsync(IdentityConstants.ApplicationScheme);
-    ctx.Response.Redirect("/");
-});
-
 app.MapGet("/signin-discord", async (HttpContext ctx, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) =>
 {
     var result = await ctx.AuthenticateAsync("Discord");
@@ -186,10 +223,63 @@ app.MapGet("/signin-discord", async (HttpContext ctx, SignInManager<ApplicationU
     await signInManager.SignInAsync(
     user,
     new AuthenticationProperties { IsPersistent = true },
-    IdentityConstants.ApplicationScheme  
+    IdentityConstants.ApplicationScheme
 );
 
 
+    ctx.Response.Redirect("/");
+});
+
+app.MapGet("/auth-reddit", async (HttpContext ctx) =>
+{
+    var returnUrl = ctx.Request.Query["ReturnUrl"].FirstOrDefault() ?? "/";
+    await ctx.ChallengeAsync("Reddit", new AuthenticationProperties
+    {
+        RedirectUri = returnUrl
+    });
+});
+
+app.MapGet("/signin-reddit", async (HttpContext ctx, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) =>
+{
+    var result = await ctx.AuthenticateAsync("Reddit");
+    if (!result.Succeeded || result.Principal == null)
+    {
+        ctx.Response.Redirect("/login?error=reddit");
+        return;
+    }
+
+    var redditId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+    var username = result.Principal.FindFirstValue(ClaimTypes.Name);
+
+    if (redditId == null)
+    {
+        ctx.Response.Redirect("/login?error=missingid");
+        return;
+    }
+
+    var user = await userManager.FindByLoginAsync("Reddit", redditId);
+    if (user == null)
+    {
+        user = new ApplicationUser
+        {
+            UserName = username ?? $"reddit_{redditId}"
+        };
+        await userManager.CreateAsync(user);
+        await userManager.AddLoginAsync(user, new UserLoginInfo("Reddit", redditId, "Reddit"));
+    }
+
+    await signInManager.SignInAsync(
+        user,
+        new AuthenticationProperties { IsPersistent = true },
+        IdentityConstants.ApplicationScheme
+    );
+
+    ctx.Response.Redirect("/");
+});
+
+app.MapPost("/logout", async (HttpContext ctx) =>
+{
+    await ctx.SignOutAsync(IdentityConstants.ApplicationScheme);
     ctx.Response.Redirect("/");
 });
 

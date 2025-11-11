@@ -30,7 +30,7 @@
 
     private void HandleRedditLogin()
     {
-        NavigationManager.NavigateTo($"/login/shibauth?ReturnUrl={ReturnUrl}");
+        NavigationManager.NavigateTo($"/auth-reddit?ReturnUrl={ReturnUrl}", forceLoad: true);
     }
 
     private void HandleDiscordLogin()
