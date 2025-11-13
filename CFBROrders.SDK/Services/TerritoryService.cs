@@ -1,4 +1,5 @@
-﻿using CFBROrders.SDK.Interfaces;
+﻿using CFBROrders.SDK.Data_Models;
+using CFBROrders.SDK.Interfaces;
 using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
@@ -11,25 +12,28 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Services
 {
-    public class TerritoriesService : ITerritoriesService
+    public class TerritoryService : ITerritoryService
     {
         public IUnitOfWork UnitOfWork { get; set; }
-
+        public IOperationResult Result { get; set; }
 
         private ILogger _logger;
 
-        public TerritoriesService(IUnitOfWork unitOfWork, ILogger<TeamsService> logger)
+        public TerritoryService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<TeamService> logger)
         {
             UnitOfWork = unitOfWork;
+            Result = result;
             _logger = logger;
         }
 
-        public List<TerritoryOwnershipWithNeighbors> GetTerritoryOwnershipWithNeighbors(int season, int day, string team )
+        private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).db;
+
+        public List<TerritoryOwnershipWithNeighbor> GetTerritoryOwnershipWithNeighbors(int season, int day, string team )
         {
-            var Teams = new List<TerritoryOwnershipWithNeighbors>();
+            var Teams = new List<TerritoryOwnershipWithNeighbor>();
             try
             {
-                Teams = ((NPocoUnitOfWork)UnitOfWork).db.Fetch<TerritoryOwnershipWithNeighbors>(
+                Teams = Db.Fetch<TerritoryOwnershipWithNeighbor>(
                     @"SELECT 
                         *
                       FROM territory_ownership_with_neighbors WHERE season = @0 AND day = @1

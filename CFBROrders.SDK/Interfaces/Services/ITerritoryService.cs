@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Interfaces.Services
 {
-    public interface ITerritoriesService
+    public interface ITerritoryService
     {
-        public List<TerritoryOwnershipWithNeighbors> GetTerritoryOwnershipWithNeighbors(int season, int day, string team);
+        public List<TerritoryOwnershipWithNeighbor> GetTerritoryOwnershipWithNeighbors(int season, int day, string team);
 
         public List<(string Name, string Owner)> GetAttackableTerritories(string team, int season, int day);
     }

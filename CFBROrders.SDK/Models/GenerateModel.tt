@@ -79,7 +79,7 @@ foreach (var table in tables)
     var cols = new List<(string name, string type, bool nullable)>();
 
     using (var colCmd = new NpgsqlCommand($@"
-        SELECT column_name, data_type, is_nullable
+        SELECT column_name, udt_name, is_nullable
         FROM information_schema.columns
         WHERE table_name = '{table}'", conn))
     {
@@ -96,7 +96,7 @@ foreach (var table in tables)
     }
 #>
     [Table("<#= table #>")]
-    public partial class <#= PascalCase(table) #>
+    public partial class <#= Singularize(PascalCase(table)) #>
     {
 <#
     foreach (var c in cols)
@@ -124,6 +124,19 @@ string PascalCase(string input)
     return sb.ToString();
 }
 
+string Singularize(string name)
+{
+    if (string.IsNullOrEmpty(name)) return name;
+
+    if (name.Equals("territories", StringComparison.OrdinalIgnoreCase))
+        return "Territory";
+
+    if (name.EndsWith("s") && name.Length > 1)
+        return name.Substring(0, name.Length - 1);
+
+    return name;
+}
+
 string SafePropertyName(string name)
 {
     string[] keywords = new string[]
@@ -141,6 +154,17 @@ string SafePropertyName(string name)
 
 string MapPostgresType(string pgType)
 {
+    if (pgType.StartsWith("_"))
+    {
+        switch (pgType)
+        {
+            case "_int4": return "int[]";
+            case "_int8": return "long[]";
+            case "_text": return "string[]";
+            default: return "string[]"; // fallback
+        }
+    }
+
     switch (pgType)
     {
         case "integer": return "int";
@@ -153,12 +177,13 @@ string MapPostgresType(string pgType)
         case "timestamp without time zone":
         case "timestamp with time zone":
         case "date": return "DateTime";
-        case "numeric":
-        case "double precision":
-        case "real": return "decimal";
+        case "numeric": return "decimal";
+        case "double precision": return "double";
+        case "real": return "float";
         case "uuid": return "Guid";
         default: return "string";
     }
 }
 #>
+
 

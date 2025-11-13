@@ -7,7 +7,7 @@ namespace CFBROrders.SDK.Data_Models
     {
         public NPocoModelMappings()
         {
-            For<TerritoryOwnershipWithNeighbors>().Columns(x =>
+            For<TerritoryOwnershipWithNeighbor>().Columns(x =>
             {
                 x.Column(y => y.NeighborList).Result();
                 x.Column(y => y.Priority).Result();

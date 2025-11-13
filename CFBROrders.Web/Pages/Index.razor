@@ -1,5 +1,5 @@
 ﻿@page "/"
-@inject ILogger<Index> Logger
+@inject ILogger<Index> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
@@ -69,7 +69,7 @@ else
 }
 
 @code {
-    private List<Users>? usersList;
+    private List<User>? usersList;
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,8 +78,8 @@ else
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Failed to load users");
-            usersList = new List<Users>();
+            _logger.LogError(ex, "Failed to load users");
+            usersList = new List<User>();
         }
     }
 }

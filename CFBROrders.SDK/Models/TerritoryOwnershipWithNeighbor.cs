@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Models
 {
-    public partial class TerritoryOwnershipWithNeighbors
+    public partial class TerritoryOwnershipWithNeighbor
     {
         public List<Neighbor> NeighborList
         {

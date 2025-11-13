@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Interfaces.Services
 {
-    public interface ITeamsService
+    public interface IUserService
     {
-        public double GetTeamStarPowerForTurn(string tname, int season, int day);
+        public List<User> GetAllUsers(string userId);
+
+        public User GetUserByPlatformAndUsername(string platform, string uname);
     }
 }

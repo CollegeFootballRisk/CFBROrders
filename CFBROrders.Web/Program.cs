@@ -1,3 +1,4 @@
+using CFBROrders.SDK.Data_Models;
 using CFBROrders.SDK.DataModel;
 using CFBROrders.SDK.Interfaces;
 using CFBROrders.SDK.Interfaces.Services;
@@ -124,10 +125,13 @@ builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Informatio
 builder.Host.UseNLog();
 
 CFBROrdersDatabaseFactory.Setup(connectionString);
+
+builder.Services.AddScoped<IOperationResult, DBOperationResult>();
 builder.Services.AddScoped<IUnitOfWork, NPocoUnitOfWork>();
-builder.Services.AddScoped<IUsersService, UsersService>();
-builder.Services.AddScoped<ITerritoriesService, TerritoriesService>();
-builder.Services.AddScoped<ITeamsService, TeamsService>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITerritoryService, TerritoryService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -151,7 +155,7 @@ app.MapGet("/auth-discord", async (HttpContext ctx) =>
     await ctx.ChallengeAsync("Discord", new AuthenticationProperties { RedirectUri = "/signin-discord?ReturnUrl=" + returnUrl });
 });
 
-app.MapGet("/signin-discord", async (HttpContext ctx, ApplicationDBContext db) =>
+app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) =>
 {
     var result = await ctx.AuthenticateAsync("Discord");
     if (!result.Succeeded || result.Principal == null)
@@ -175,8 +179,8 @@ app.MapGet("/signin-discord", async (HttpContext ctx, ApplicationDBContext db) =
         return;
     }
 
-    var user = await db.Users.FirstOrDefaultAsync(u =>
-        u.Platform == "discord" && (u.Uname == username || u.Uname == username + "$0"));
+    var user = UserService.GetUserByPlatformAndUsername("discord", username);
+
     if (user == null)
     {
         ctx.Response.Redirect("/login?error=not_registered");
@@ -204,9 +208,10 @@ app.MapGet("/auth-reddit", async (HttpContext ctx) =>
     await ctx.ChallengeAsync("Reddit", new AuthenticationProperties { RedirectUri = "/signin-reddit?ReturnUrl=" + returnUrl });
 });
 
-app.MapGet("/signin-reddit", async (HttpContext ctx, ApplicationDBContext db) =>
+app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =>
 {
     var result = await ctx.AuthenticateAsync("Reddit");
+
     if (!result.Succeeded || result.Principal == null)
     {
         ctx.Response.Redirect("/login?error=reddit_auth_failed");
@@ -222,7 +227,8 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, ApplicationDBContext db) =>
         return;
     }
 
-    var user = await db.Users.FirstOrDefaultAsync(u => u.Platform == "reddit" && u.Uname == username);
+    var user = UserService.GetUserByPlatformAndUsername("reddit", username);
+
     if (user == null)
     {
         ctx.Response.Redirect("/login?error=not_registered");

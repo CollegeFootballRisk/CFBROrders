@@ -1,11 +1,13 @@
 ﻿@page "/admin/AddOrders"
 @layout MainLayout
-@inject ILogger<AddOrders> Logger
+@inject ILogger<AddOrders> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
 <h2>Add Orders</h2>
 <hr />
+
+<p>@test.Uname</p>
 
 <p>
     Please add your orders. This amount should at most add up to your team star power, which is <strong>@starPower</strong>.
@@ -13,7 +15,7 @@
 
 <h3>Defendable Territories</h3>
 <RadzenDataGrid Data="@territoryOwnershipWithNeighborsList"
-                TItem="TerritoryOwnershipWithNeighbors"
+                TItem="TerritoryOwnershipWithNeighbor"
                 class="w-100"
                 ShowPagingSummary="true"
                 AllowFiltering="true"
@@ -22,9 +24,9 @@
                 PageSize="@pageSize"
                 PageSizeOptions="@pagingOptions">
     <Columns>
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbors" Property="Name" Title="Territory" />
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory" />
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbors" Title="Neighbors and Owners">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Neighbors and Owners">
             <Template Context="territory">
                 @{
                     var opposingNeighbors = territory.NeighborList
@@ -48,7 +50,7 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbors" Title="Priority">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Priority">
             <Template Context="territory">
                 <RadzenDropDown @bind-Value="territory.Priority"
                                 Data="@priorityOptions"
@@ -78,7 +80,7 @@
         <RadzenDataGridColumn TItem="(string Name, string Owner)" Title="Owner">
             <Template Context="n">@n.Owner</Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbors" Title="Priority">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Priority">
             <Template Context="territory">
                 <RadzenDropDown @bind-Value="territory.Priority"
                                 Data="@priorityOptions"
@@ -95,8 +97,9 @@
 
 
 @code {
-    private List<TerritoryOwnershipWithNeighbors>? territoryOwnershipWithNeighborsList;
+    private List<TerritoryOwnershipWithNeighbor>? territoryOwnershipWithNeighborsList;
     private List<(string Name, string Owner)> attackableTerritories = new();
+    private User test = new();
 
     int pageSize = 10;
     int[] pagingOptions = { 5, 10, 20, 50 };
@@ -112,21 +115,22 @@
     {
         try
         {
+            test = UserService.GetUserByPlatformAndUsername("discord", "shen3340$0");
             currentDay = pastDay + 1;
-            starPower = TeamsService.GetTeamStarPowerForTurn(team, season, pastDay);
+            starPower = TeamService.GetTeamStarPowerForTurn(team, season, pastDay);
 
-            Logger.LogInformation("Fetching territory ownership for team {Team}", team);
+            _logger.LogInformation("Fetching territory ownership for team {Team}", team);
 
             territoryOwnershipWithNeighborsList =
-                TerritoriesService.GetTerritoryOwnershipWithNeighbors(season, currentDay, team);
+                TerritoryService.GetTerritoryOwnershipWithNeighbors(season, currentDay, team);
 
-            attackableTerritories = TerritoriesService.GetAttackableTerritories(team, season, currentDay);
+            attackableTerritories = TerritoryService.GetAttackableTerritories(team, season, currentDay);
 
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error loading territory ownership data");
-            territoryOwnershipWithNeighborsList = new List<TerritoryOwnershipWithNeighbors>();
+            _logger.LogError(ex, "Error loading territory ownership data");
+            territoryOwnershipWithNeighborsList = new List<TerritoryOwnershipWithNeighbor>();
         }
     }
 
