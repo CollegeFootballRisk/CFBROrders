@@ -76,5 +76,33 @@ namespace CFBROrders.SDK.Services
             
             return user;
         }
+
+        public User GetUserById(int id)
+        {
+            Result.Reset();
+
+            User user;
+
+            try
+            {
+                user = Db.SingleOrDefault<User>(
+                    @"SELECT *
+                      FROM users
+                    WHERE id = @0",
+                    id
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting user with id {id}");
+
+                Result.GetException(ex);
+
+                throw;
+            }
+            _logger.LogInformation($"Success getting user with id {id}");
+
+            return user;
+        }
     }
 }

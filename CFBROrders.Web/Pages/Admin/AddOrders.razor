@@ -1,7 +1,7 @@
 ﻿@page "/admin/AddOrders"
 @layout MainLayout
 @inject ILogger<AddOrders> _logger
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IUserHandler UserHandler
 @attribute [Authorize]
 
 <h2>Add Orders</h2>
@@ -110,12 +110,15 @@
     private int pastDay = 27;
     private int currentDay;
     private double starPower;
+    private string testUser;
 
     protected override void OnInitialized()
     {
         try
         {
-            test = UserService.GetUserByPlatformAndUsername("discord", "shen3340$0");
+            test = UserHandler.CurrentUser;
+            testUser = UserHandler.Username;
+            _logger.LogInformation($"Current user: {test} and username {testUser}");
             currentDay = pastDay + 1;
             starPower = TeamService.GetTeamStarPowerForTurn(team, season, pastDay);
 

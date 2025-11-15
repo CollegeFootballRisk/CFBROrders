@@ -6,6 +6,8 @@ using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using CFBROrders.SDK.Services;
 using CFBROrders.Web.Data;
+using CFBROrders.Web.Handlers;
+using CFBROrders.Web.Interfaces.Handlers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -134,6 +136,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITerritoryService, TerritoryService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 
+builder.Services.AddScoped<IUserHandler, UserHandler>();
+
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -157,7 +161,7 @@ app.MapGet("/auth-discord", async ctx =>
     await ctx.ChallengeAsync("Discord", new AuthenticationProperties { RedirectUri = "/signin-discord?ReturnUrl=" + returnUrl });
 });
 
-app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) =>
+app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, IUserHandler userHandler) =>
 {
     var logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -200,6 +204,8 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) 
         return;
     }
 
+    userHandler.SetUser(user);
+
     var claims = new List<Claim>
     {
         new (ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -222,7 +228,7 @@ app.MapGet("/auth-reddit", async ctx =>
     await ctx.ChallengeAsync("Reddit", new AuthenticationProperties { RedirectUri = "/signin-reddit?ReturnUrl=" + returnUrl });
 });
 
-app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =>
+app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, IUserHandler userHandler) =>
 {
     var logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -264,6 +270,8 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =
         ctx.Response.Redirect("/autherror?error=not_registered");
         return;
     }
+
+    userHandler.SetUser(user);
 
     var claims = new List<Claim>
     {

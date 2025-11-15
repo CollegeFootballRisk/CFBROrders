@@ -12,5 +12,7 @@ namespace CFBROrders.SDK.Interfaces.Services
         public List<User> GetAllUsers();
 
         public User GetUserByPlatformAndUsername(string platform, string uname);
+
+        public User GetUserById(int userId);
     }
 }
