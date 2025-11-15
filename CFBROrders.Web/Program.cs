@@ -140,7 +140,7 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
+    app.UseExceptionHandler("/error");
     app.UseHsts();
 }
 
@@ -159,12 +159,15 @@ app.MapGet("/auth-discord", async ctx =>
 
 app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) =>
 {
+    var logger = NLog.LogManager.GetCurrentClassLogger();
+
     var result = await ctx.AuthenticateAsync("Discord");
 
     // if Oauth failed completely
     if (!result.Succeeded || result.Principal == null)
     {
-        ctx.Response.Redirect("/login?error=discord_auth_failed");
+        logger.Error("Discord OAuth failed: no principal or authentication did not succeed.");
+        ctx.Response.Redirect("/autherror?error=discord_auth_failed");
         return;
     }
 
@@ -174,14 +177,16 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) 
     // if there's no discord id
     if (discordId == null)
     {
-        ctx.Response.Redirect("/login?error=missingid");
+        logger.Error($"Discord OAuth failed: missing Discord ID for username: {username}.");
+        ctx.Response.Redirect("/autherror?error=invalid_discord_id");
         return;
     }
 
     // if discord id changed how the ID is formatted
     if (!long.TryParse(discordId, out var discordLong))
     {
-        ctx.Response.Redirect("/login?error=invalid_discord_id");
+        logger.Error($"Discord OAuth failed: invalid Discord ID format: {discordId} for username: {username}.");
+        ctx.Response.Redirect("/autherror?error=invalid_discord_id");
         return;
     }
 
@@ -190,7 +195,8 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService) 
     // if user hasn't already made a CFBR account
     if (user == null)
     {
-        ctx.Response.Redirect("/login?error=not_registered");
+        logger.Error($"Discord OAuth failed: User doesn't have an existing CFBR account with discordId: {discordId} and username {username}");
+        ctx.Response.Redirect("/autherror?error=not_registered");
         return;
     }
 
@@ -218,12 +224,15 @@ app.MapGet("/auth-reddit", async ctx =>
 
 app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =>
 {
+    var logger = NLog.LogManager.GetCurrentClassLogger();
+
     var result = await ctx.AuthenticateAsync("Reddit");
 
     // if Oauth failed completely
     if (!result.Succeeded || result.Principal == null)
     {
-        ctx.Response.Redirect("/login?error=reddit_auth_failed");
+        logger.Error("Reddit OAuth failed: no principal or authentication did not succeed.");
+        ctx.Response.Redirect("/autherror?error=reddit_auth_failed");
         return;
     }
 
@@ -233,7 +242,16 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =
     // if there's no reddit id
     if (redditId == null)
     {
-        ctx.Response.Redirect("/login?error=missingid");
+        logger.Error($"Reddit OAuth failed: missing Reddit ID for username: {username}.");
+        ctx.Response.Redirect("/autherror?error=missingid");
+        return;
+    }
+
+    // Reddit IDs are strings (not numeric), but log in the same style anyway
+    if (string.IsNullOrWhiteSpace(redditId))
+    {
+        logger.Error($"Reddit OAuth failed: invalid Reddit ID format: {redditId} for username: {username}.");
+        ctx.Response.Redirect("/autherror?error=invalid_reddit_id");
         return;
     }
 
@@ -242,7 +260,8 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService) =
     // if the user hasn't already made a CFBR account
     if (user == null)
     {
-        ctx.Response.Redirect("/login?error=not_registered");
+        logger.Error($"Reddit OAuth failed: User doesn't have an existing CFBR account with redditId: {redditId} and username {username}");
+        ctx.Response.Redirect("/autherror?error=not_registered");
         return;
     }
 

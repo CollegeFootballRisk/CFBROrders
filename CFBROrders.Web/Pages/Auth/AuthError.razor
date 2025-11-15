@@ -1,0 +1,43 @@
+﻿@page "/autherror"
+@inject NavigationManager NavigationManager
+
+<h1 class="mb-3">Authentication Error</h1>
+
+@if (errorMessage is not null)
+{
+    <p class="text-danger">@errorMessage</p>
+}
+else
+{
+    <p class="text-danger">An unknown error occurred.</p>
+}
+
+@code {
+    private string? errorCode;
+    private string? errorMessage;
+
+    protected override void OnInitialized()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("error", out var value))
+        {
+            errorCode = value.ToString();
+            errorMessage = MapErrorMessage(errorCode);
+        }
+    }
+
+    private string MapErrorMessage(string code)
+    {
+        return code switch
+        {
+            "discord_auth_failed" => "Discord authentication failed. Please try again.",
+            "reddit_auth_failed" => "Reddit authentication failed. Please try again.",
+            "missingid" => "No ID was provided by the authentication service.",
+            "invalid_discord_id" => "Discord returned an invalid user ID format.",
+            "not_registered" => "This platform account is not registered with CFBR.",
+            _ => "An unknown authentication error occurred."
+        };
+    }
+}
