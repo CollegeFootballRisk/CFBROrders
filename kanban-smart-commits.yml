@@ -1,0 +1,82 @@
+﻿name: Kanban Smart Commits
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  kanban-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Move cards and update issues
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          PROJECT_NAME: "CFBR Orders"
+          COLUMN_BACKLOG: "Backlog"
+          COLUMN_IN_PROGRESS: "In Progress"
+          COLUMN_IN_REVIEW: "In Review"
+          COLUMN_DONE: "Done"
+        run: |
+          echo "Commit message: $COMMIT_MSG"
+
+          # Extract issue number
+          ISSUE=$(echo "$COMMIT_MSG" | grep -o "#[0-9]\+" | head -n1 | tr -d '#')
+          if [ -z "$ISSUE" ]; then
+            echo "No issue number found. Exiting."
+            exit 0
+          fi
+          echo "Issue number: $ISSUE"
+
+          # Determine target column and whether to close issue
+          if echo "$COMMIT_MSG" | grep -q "#backlog"; then
+            COLUMN="$COLUMN_BACKLOG"
+            CLOSE="false"
+          elif echo "$COMMIT_MSG" | grep -q "#in-progress"; then
+            COLUMN="$COLUMN_IN_PROGRESS"
+            CLOSE="false"
+          elif echo "$COMMIT_MSG" | grep -q "#in-review"; then
+            COLUMN="$COLUMN_IN_REVIEW"
+            CLOSE="false"
+          elif echo "$COMMIT_MSG" | grep -q "#done"; then
+            COLUMN="$COLUMN_DONE"
+            CLOSE="true"
+          else
+            COLUMN=""
+            CLOSE="false"
+          fi
+          echo "Target column: $COLUMN"
+
+          # Get project ID
+          PROJECT_ID=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/repos/$REPO/projects | jq -r ".[] | select(.name==\"$PROJECT_NAME\") | .id")
+          echo "Project ID: $PROJECT_ID"
+
+          # Find card ID for the issue
+          CARD_ID=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/projects/$PROJECT_ID/cards | jq -r ".[] | select(.content_url | contains(\"/issues/$ISSUE\")) | .id")
+          echo "Card ID: $CARD_ID"
+
+          # Move card to target column
+          if [ -n "$COLUMN" ] && [ -n "$CARD_ID" ]; then
+            COLUMN_ID=$(curl -s -H "Authorization: token $GH_TOKEN" \
+              https://api.github.com/projects/$PROJECT_ID/columns | jq -r ".[] | select(.name==\"$COLUMN\") | .id")
+            curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.inertia-preview+json" \
+              https://api.github.com/projects/columns/$COLUMN_ID/cards/$CARD_ID/moves \
+              -d '{"position":"top"}'
+            echo "Moved card #$ISSUE to $COLUMN"
+          fi
+
+          # Close the issue if #done
+          if [ "$CLOSE" = "true" ]; then
+            curl -s -X PATCH -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/$REPO/issues/$ISSUE \
+              -d "{\"state\":\"closed\",\"body\":\"Automatically closed via commit: $COMMIT_MSG\"}"
+            echo "Closed issue #$ISSUE"
+          fi
