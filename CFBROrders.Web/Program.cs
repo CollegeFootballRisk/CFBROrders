@@ -6,8 +6,6 @@ using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using CFBROrders.SDK.Services;
 using CFBROrders.Web.Data;
-using CFBROrders.Web.Handlers;
-using CFBROrders.Web.Interfaces.Handlers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -150,8 +148,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITerritoryService, TerritoryService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 
-builder.Services.AddScoped<IUserHandler, UserHandler>();
-
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -175,7 +171,7 @@ app.MapGet("/auth-discord", async ctx =>
     await ctx.ChallengeAsync("Discord", new AuthenticationProperties { RedirectUri = "/signin-discord?ReturnUrl=" + returnUrl });
 });
 
-app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, IUserHandler userHandler) =>
+app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, ITeamService TeamService) =>
 {
     var logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -226,17 +222,30 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, 
 
         await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-        ctx.Response.Redirect("/autherror?error=not_registered");
+        ctx.Response.Redirect("/autherror?error=not-registered");
         return;
     }
 
-    userHandler.SetUser(user);
+    // verify that user is on an active team
+    if (user.CurrentTeam == -1)
+    {
+        logger.Error($"Discord OAuth failed: Username {username} isn't on an active team");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        ctx.Response.Redirect("/autherror?error=team-not-active");
+        return;
+    }
 
     var claims = new List<Claim>
     {
-        new (ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new (ClaimTypes.Name, user.Uname ?? ""),
-        new ("Platform", user.Platform ?? "")
+        new ("UserId", user.Id.ToString()),
+        new ("Username", user.Uname ?? ""),
+        new ("Platform", user.Platform ?? ""),
+        new ("CurrentTeam", TeamService.GetTeamNameByTeamId(user.CurrentTeam)),
+        new ("Overall", UserService.GetOverallByUserId(user.Id).ToString()),
+        new ("Color", TeamService.GetTeamColorByTeamId(user.CurrentTeam))
+
     };
 
     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -254,7 +263,7 @@ app.MapGet("/auth-reddit", async ctx =>
     await ctx.ChallengeAsync("Reddit", new AuthenticationProperties { RedirectUri = "/signin-reddit?ReturnUrl=" + returnUrl });
 });
 
-app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, IUserHandler userHandler) =>
+app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, ITeamService TeamService) =>
 {
     var logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -299,23 +308,36 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, I
     var user = UserService.GetUserByPlatformAndUsername("reddit", username);
 
     // if the user hasn't already made a CFBR account
-    if (user == null)
+    if (user == null) 
     {
         logger.Error($"Reddit OAuth failed: User doesn't have an existing CFBR account with redditId: {redditId} and username {username}");
 
         await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-        ctx.Response.Redirect("/autherror?error=not_registered");
+        ctx.Response.Redirect("/autherror?error=not-registered");
         return;
     }
 
-    userHandler.SetUser(user);
+    // verify that user is on an active team
+    if (user.CurrentTeam == -1)
+    {
+        logger.Error($"Reddit OAuth failed: Username {username} isn't on an active team");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        ctx.Response.Redirect("/autherror?error=team-not-active");
+        return;
+    }
 
     var claims = new List<Claim>
     {
-        new (ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new (ClaimTypes.Name, user.Uname ?? ""),
-        new ("Platform", user.Platform ?? "")
+        new ("UserId", user.Id.ToString()),
+        new ("Username", user.Uname ?? ""),
+        new ("Platform", user.Platform ?? ""),
+        new ("CurrentTeam", TeamService.GetTeamNameByTeamId(user.CurrentTeam)),
+        new ("Overall", UserService.GetOverallByUserId(user.Id).ToString()),
+        new ("Color", TeamService.GetTeamColorByTeamId(user.CurrentTeam))
+
     };
 
     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

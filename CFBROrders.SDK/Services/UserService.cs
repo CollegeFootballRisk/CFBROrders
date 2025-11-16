@@ -77,6 +77,32 @@ namespace CFBROrders.SDK.Services
             return user;
         }
 
+        public int GetOverallByUserId(int userId)
+        {
+            Result.Reset();
+            int overall;
+            try
+            {
+                overall = Db.SingleOrDefault<int>(
+                    @"SELECT overall
+                      FROM users
+                    WHERE id = @0",
+                    userId
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting overall for user with id {userId}");
+                
+                Result.GetException(ex);
+                
+                throw;
+            }
+            _logger.LogInformation($"Success getting overall for user with id {userId}");
+            
+            return overall;
+        }
+
         public User GetUserById(int id)
         {
             Result.Reset();

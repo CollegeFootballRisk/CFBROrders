@@ -19,3 +19,8 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.star {
+  line-height: 1em;
+  margin: 5px;
+}

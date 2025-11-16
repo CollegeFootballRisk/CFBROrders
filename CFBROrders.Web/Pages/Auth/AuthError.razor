@@ -21,13 +21,26 @@ else if (errorCode is "reddit-auth-failed" or "missingid")
     @ReLoginButtons()
     @ContactLinks()
 }
-else if (errorCode == "not_registered")
+else if (errorCode == "not-registered")
 {
     <p class="text-danger">
         You don't have an account with College Football Risk, please create an account here:
         <a href="https://collegefootballrisk.com" target="_blank">Create an account</a>
         <br /><br />
         After creating an account, click below to reauthenticate:
+    </p>
+
+    @ReLoginButtons()
+    @ContactLinks()
+}
+else if (errorCode == "team-not-active")
+{
+    <p class="text-danger">
+        Your account isn't associated with an active team in this season of College Football Risk.
+        Please make sure your account is associated with an active team  
+        <a href="https://collegefootballrisk.com" target="_blank">HERE</a> 
+        <br /><br />
+        After joining an active team, click below to reauthenticate:
     </p>
 
     @ReLoginButtons()
@@ -62,7 +75,7 @@ else
         "reddit-auth-failed" => "",
         "missingid" => "",
         "invalid-discord-id" => "",
-        "not_registered" => "",
+        "not-registered" => "",
         _ => "An unknown authentication error occurred."
     };
 

@@ -21,6 +21,56 @@ namespace CFBROrders.SDK.Services
 
         private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).Db;
 
+        public string GetTeamNameByTeamId(int id)
+        {
+            Result.Reset();
+
+            string teamName;
+
+            try
+            {
+                teamName = Db.SingleOrDefault<string>(
+                    @"SELECT tname
+                      FROM teams WHERE id = @0", id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while fetching teamName for {id}");
+
+                Result.GetException(ex);
+
+                throw;
+            }
+            _logger.LogInformation($"Fetched teamName for {id}");
+
+            return teamName;
+        }
+
+        public string GetTeamColorByTeamId(int id)
+        {
+            Result.Reset();
+
+            string color;
+
+            try
+            {
+                color = Db.SingleOrDefault<string>(
+                    @"SELECT color_1
+                      FROM teams WHERE id = @0", id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while fetching color for team id:{id}");
+
+                Result.GetException(ex);
+
+                throw;
+            }
+            _logger.LogInformation($"Fetched color for  team id: {id}");
+
+            return color;
+
+        }
         public double GetTeamStarPowerForTurn(string tname, int season, int day)
         {
             Result.Reset();

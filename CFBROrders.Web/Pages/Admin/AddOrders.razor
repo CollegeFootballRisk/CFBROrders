@@ -1,13 +1,20 @@
 ﻿@page "/admin/AddOrders"
 @layout MainLayout
 @inject ILogger<AddOrders> _logger
-@inject IUserHandler UserHandler
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
 <h2>Add Orders</h2>
 <hr />
 
-<p>@test.Uname</p>
+<p>
+    @username playing for @team has 
+    <span class="star"
+      style="color:@color; text-shadow:0 0 5px @color;">
+    @(new string('✯', overall))
+</span>
+
+</p>
 
 <p>
     Please add your orders. This amount should at most add up to your team star power, which is <strong>@starPower</strong>.
@@ -95,46 +102,44 @@
     </Columns>
 </RadzenDataGrid>
 
-
 @code {
-    private List<TerritoryOwnershipWithNeighbor>? territoryOwnershipWithNeighborsList;
+    [CascadingParameter] 
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    private List<TerritoryOwnershipWithNeighbor> territoryOwnershipWithNeighborsList = new();
     private List<(string Name, string Owner)> attackableTerritories = new();
-    private User test = new();
 
     int pageSize = 10;
     int[] pagingOptions = { 5, 10, 20, 50 };
     private List<int> priorityOptions = Enumerable.Range(1, 10).ToList();
 
-    private string team = "February";
+    private string username;
+    private string team;
+    private string color;
+    private int overall;
     private int season = 5;
     private int pastDay = 27;
     private int currentDay;
     private double starPower;
-    private string testUser;
 
     protected override void OnInitialized()
     {
-        try
-        {
-            test = UserHandler.CurrentUser;
-            testUser = UserHandler.Username;
-            _logger.LogInformation($"Current user: {test} and username {testUser}");
-            currentDay = pastDay + 1;
-            starPower = TeamService.GetTeamStarPowerForTurn(team, season, pastDay);
+        var user = (AuthenticationStateTask.Result).User;
 
-            _logger.LogInformation("Fetching territory ownership for team {Team}", team);
+        username = user.FindFirstValue("Username");
+        team = user.FindFirstValue("CurrentTeam");
+        overall = int.Parse(user.FindFirstValue("Overall"));
+        color = user.FindFirstValue("Color");
 
-            territoryOwnershipWithNeighborsList =
-                TerritoryService.GetTerritoryOwnershipWithNeighbors(season, currentDay, team);
+        currentDay = pastDay + 1;
+        starPower = TeamService.GetTeamStarPowerForTurn(team, season, pastDay);
 
-            attackableTerritories = TerritoryService.GetAttackableTerritories(team, season, currentDay);
+        _logger.LogInformation("Fetching territory ownership for team {Team}", team);
 
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error loading territory ownership data");
-            territoryOwnershipWithNeighborsList = new List<TerritoryOwnershipWithNeighbor>();
-        }
+        territoryOwnershipWithNeighborsList =
+            TerritoryService.GetTerritoryOwnershipWithNeighbors(season, currentDay, team);
+
+        attackableTerritories = TerritoryService.GetAttackableTerritories(team, season, currentDay);
     }
 
     private string GetNeighborDisplay(string neighborsJson)
@@ -144,6 +149,7 @@
         try
         {
             var neighbors = JsonSerializer.Deserialize<List<Neighbor>>(neighborsJson);
+
             if (neighbors == null || !neighbors.Any()) return string.Empty;
 
             return string.Join(", ", neighbors.Select(n => $"{n.Name} ({n.Owner})"));
