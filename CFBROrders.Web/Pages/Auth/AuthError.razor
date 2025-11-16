@@ -3,15 +3,41 @@
 
 <h1 class="mb-3">Authentication Error</h1>
 
-<p> kanban smart issue test pt 3</p>
-
-@if (errorMessage is not null)
+@if (errorCode is "discord-auth-failed" or "invalid-discord-id")
 {
-    <p class="text-danger">@errorMessage</p>
+    <p class="text-danger">
+        Discord Authentication failed. Please try again to reauthenticate:
+    </p>
+
+    @ReLoginButtons()
+    @ContactLinks()
+}
+else if (errorCode is "reddit-auth-failed" or "missingid")
+{
+    <p class="text-danger">
+        Reddit Authentication failed. Please try again to reauthenticate:
+    </p>
+
+    @ReLoginButtons()
+    @ContactLinks()
+}
+else if (errorCode == "not_registered")
+{
+    <p class="text-danger">
+        You don't have an account with College Football Risk, please create an account here:
+        <a href="https://collegefootballrisk.com" target="_blank">Create an account</a>
+        <br /><br />
+        After creating an account, click below to reauthenticate:
+    </p>
+
+    @ReLoginButtons()
+    @ContactLinks()
 }
 else
 {
-    <p class="text-danger">An unknown error occurred.</p>
+    <p class="text-danger">An unknown error occurred, please try logging in again.</p>
+    @ReLoginButtons()
+    @ContactLinks()
 }
 
 @code {
@@ -30,16 +56,43 @@ else
         }
     }
 
-    private string MapErrorMessage(string code)
+    private string MapErrorMessage(string code) => code switch
     {
-        return code switch
-        {
-            "discord_auth_failed" => "Discord authentication failed. Please try again.",
-            "reddit_auth_failed" => "Reddit authentication failed. Please try again.",
-            "missingid" => "No ID was provided by the authentication service.",
-            "invalid_discord_id" => "Discord returned an invalid user ID format.",
-            "not_registered" => "This platform account is not registered with CFBR.",
-            _ => "An unknown authentication error occurred."
-        };
-    }
+        "discord-auth-failed" => "",
+        "reddit-auth-failed" => "",
+        "missingid" => "",
+        "invalid-discord-id" => "",
+        "not_registered" => "",
+        _ => "An unknown authentication error occurred."
+    };
+
+    private void ReauthenticateWithReddit() => NavigationManager.NavigateTo("/auth-reddit", forceLoad: true);
+    private void ReauthenticateWithDiscord() => NavigationManager.NavigateTo("/auth-discord", forceLoad: true);
+
+    private RenderFragment ReLoginButtons() => __builder =>
+    {
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="ReauthenticateWithReddit">
+                Login with Reddit
+            </button>
+            <button class="btn btn-primary" @onclick="ReauthenticateWithDiscord">
+                Login with Discord
+            </button>
+        </div>
+    };
+
+    private RenderFragment ContactLinks() => __builder =>
+    {
+        <p>
+            If you are still having issues, please
+            <a class="btn btn-secondary" href="https://discord.com/users/683329382952992791" target="_blank">
+                DM shen3340 on Discord
+            </a>
+            or
+            <a class="btn btn-secondary" href="https://www.reddit.com/message/compose/?to=Disastrous_Rush4196"
+               target="_blank" rel="noopener noreferrer">
+                DM Disastrous_Rush4196 on Reddit
+            </a>
+        </p>
+    };
 }

@@ -35,7 +35,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.LoginPath = "/login";
-        options.AccessDeniedPath = "/access-denied";
+        options.AccessDeniedPath = "/autherror";
         options.ExpireTimeSpan = TimeSpan.FromHours(1);
         options.SlidingExpiration = true;
     })
@@ -68,6 +68,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 var json = await response.Content.ReadAsStringAsync();
                 using var user = System.Text.Json.JsonDocument.Parse(json);
                 context.RunClaimActions(user.RootElement);
+            },
+            OnRemoteFailure = context =>
+            {
+                // If users click cancel within discord Oauth2
+                context.Response.Redirect("/autherror?error=discord-auth-failed");
+                context.HandleResponse(); 
+                return Task.CompletedTask;
             }
         };
     })
@@ -113,6 +120,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 var json = await response.Content.ReadAsStringAsync();
                 using var user = System.Text.Json.JsonDocument.Parse(json);
                 context.RunClaimActions(user.RootElement);
+            },
+            OnRemoteFailure = context =>
+            {
+                // If users click cancel within reddit Oauth2
+                context.Response.Redirect("/autherror?error=reddit-auth-failed");
+                context.HandleResponse();
+                return Task.CompletedTask;
             },
 
             OnRedirectToAuthorizationEndpoint = context =>
@@ -171,7 +185,10 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, 
     if (!result.Succeeded || result.Principal == null)
     {
         logger.Error("Discord OAuth failed: no principal or authentication did not succeed.");
-        ctx.Response.Redirect("/autherror?error=discord_auth_failed");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        ctx.Response.Redirect("/autherror?error=discord-auth-failed");
         return;
     }
 
@@ -182,6 +199,9 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, 
     if (discordId == null)
     {
         logger.Error($"Discord OAuth failed: missing Discord ID for username: {username}.");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
         ctx.Response.Redirect("/autherror?error=invalid_discord_id");
         return;
     }
@@ -190,7 +210,10 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, 
     if (!long.TryParse(discordId, out var discordLong))
     {
         logger.Error($"Discord OAuth failed: invalid Discord ID format: {discordId} for username: {username}.");
-        ctx.Response.Redirect("/autherror?error=invalid_discord_id");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        ctx.Response.Redirect("/autherror?error=invalid-discord-id");
         return;
     }
 
@@ -200,6 +223,9 @@ app.MapGet("/signin-discord", async (HttpContext ctx, IUserService UserService, 
     if (user == null)
     {
         logger.Error($"Discord OAuth failed: User doesn't have an existing CFBR account with discordId: {discordId} and username {username}");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
         ctx.Response.Redirect("/autherror?error=not_registered");
         return;
     }
@@ -238,7 +264,10 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, I
     if (!result.Succeeded || result.Principal == null)
     {
         logger.Error("Reddit OAuth failed: no principal or authentication did not succeed.");
-        ctx.Response.Redirect("/autherror?error=reddit_auth_failed");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        ctx.Response.Redirect("/autherror?error=reddit-auth-failed");
         return;
     }
 
@@ -249,6 +278,9 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, I
     if (redditId == null)
     {
         logger.Error($"Reddit OAuth failed: missing Reddit ID for username: {username}.");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
         ctx.Response.Redirect("/autherror?error=missingid");
         return;
     }
@@ -257,6 +289,9 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, I
     if (string.IsNullOrWhiteSpace(redditId))
     {
         logger.Error($"Reddit OAuth failed: invalid Reddit ID format: {redditId} for username: {username}.");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
         ctx.Response.Redirect("/autherror?error=invalid_reddit_id");
         return;
     }
@@ -267,6 +302,9 @@ app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, I
     if (user == null)
     {
         logger.Error($"Reddit OAuth failed: User doesn't have an existing CFBR account with redditId: {redditId} and username {username}");
+
+        await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
         ctx.Response.Redirect("/autherror?error=not_registered");
         return;
     }
