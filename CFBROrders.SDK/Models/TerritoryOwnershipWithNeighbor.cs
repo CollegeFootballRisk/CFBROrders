@@ -9,32 +9,14 @@ namespace CFBROrders.SDK.Models
 {
     public partial class TerritoryOwnershipWithNeighbor
     {
-        public List<Neighbor> NeighborList
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(Neighbors))
-                    return [];
+        private static readonly JsonSerializerOptions _jsonOptions =
+            new()
+            { PropertyNameCaseInsensitive = true };
 
-                try
-                {
-                    return JsonSerializer.Deserialize<List<Neighbor>>(Neighbors) ?? [];
-                }
-                catch
-                {
-                    return [];
-                }
-            }
-        }
+        public List<Neighbor> NeighborList { get; set; } = [];
 
-        public int Priority { get; set; } = 1;
-    }
+        public int Tier { get; set; } = 1;
 
-    public class Neighbor
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public string ShortName { get; set; } = "";
-        public string Owner { get; set; } = "";
+        public int? StarPowerAllocation { get; set; }
     }
 }

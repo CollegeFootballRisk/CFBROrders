@@ -10,7 +10,8 @@ namespace CFBROrders.SDK.Data_Models
             For<TerritoryOwnershipWithNeighbor>().Columns(x =>
             {
                 x.Column(y => y.NeighborList).Result();
-                x.Column(y => y.Priority).Result();
+                x.Column(y => y.Tier).Result();
+                x.Column(y => y.StarPowerAllocation).Result();
             });
 
         }

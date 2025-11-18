@@ -13,7 +13,6 @@
       style="color:@color; text-shadow:0 0 5px @color;">
     @(new string('✯', overall))
 </span>
-
 </p>
 
 <p>
@@ -21,7 +20,7 @@
 </p>
 
 <h3>Defendable Territories</h3>
-<RadzenDataGrid Data="@territoryOwnershipWithNeighborsList"
+<RadzenDataGrid Data="@defendableTerritories"
                 TItem="TerritoryOwnershipWithNeighbor"
                 class="w-100"
                 ShowPagingSummary="true"
@@ -57,10 +56,10 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Priority">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Tier">
             <Template Context="territory">
-                <RadzenDropDown @bind-Value="territory.Priority"
-                                Data="@priorityOptions"
+                <RadzenDropDown @bind-Value="territory.Tier"
+                                Data="@tierOptions"
                                 Style="width:100%"
                                 AllowClear="false" />
             </Template>
@@ -77,20 +76,20 @@
 <br />
 
 <h3>Attackable Territories</h3>
-<RadzenDataGrid Data="@attackableTerritories" TItem="(string Name, string Owner)"
+<RadzenDataGrid Data="@attackableTerritories" TItem="TerritoryOwnershipWithNeighbor"
                 ShowPagingSummary="true" AllowFiltering="true"
                 AllowSorting="true" AllowPaging="true" PageSize="@pageSize" PageSizeOptions="@pagingOptions">
     <Columns>
-        <RadzenDataGridColumn TItem="(string Name, string Owner)" Title="Territory">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Territory">
             <Template Context="n">@n.Name</Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="(string Name, string Owner)" Title="Owner">
-            <Template Context="n">@n.Owner</Template>
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Owner">
+            <Template Context="n">@n.Tname</Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Priority">
+        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Tier">
             <Template Context="territory">
-                <RadzenDropDown @bind-Value="territory.Priority"
-                                Data="@priorityOptions"
+                <RadzenDropDown @bind-Value="territory.Tier"
+                                Data="@tierOptions"
                                 Style="width:100%"
                                 AllowClear="false" />
             </Template>
@@ -106,20 +105,19 @@
     [CascadingParameter] 
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
-    private List<TerritoryOwnershipWithNeighbor> territoryOwnershipWithNeighborsList = new();
-    private List<(string Name, string Owner)> attackableTerritories = new();
+    private List<TerritoryOwnershipWithNeighbor> defendableTerritories = new();
+    private List<TerritoryOwnershipWithNeighbor> attackableTerritories = new();
 
     int pageSize = 10;
     int[] pagingOptions = { 5, 10, 20, 50 };
-    private List<int> priorityOptions = Enumerable.Range(1, 10).ToList();
+    private List<int> tierOptions = Enumerable.Range(1, 10).ToList();
 
     private string username;
     private string team;
     private string color;
     private int overall;
     private int season = 5;
-    private int pastDay = 27;
-    private int currentDay;
+    private int lastRoll = 2;
     private double starPower;
 
     protected override void OnInitialized()
@@ -131,15 +129,14 @@
         overall = int.Parse(user.FindFirstValue("Overall"));
         color = user.FindFirstValue("Color");
 
-        currentDay = pastDay + 1;
-        starPower = TeamService.GetTeamStarPowerForTurn(team, season, pastDay);
+        starPower = TeamService.GetTeamStarPowerForTurn(team, season, lastRoll - 1);
 
         _logger.LogInformation("Fetching territory ownership for team {Team}", team);
 
-        territoryOwnershipWithNeighborsList =
-            TerritoryService.GetTerritoryOwnershipWithNeighbors(season, currentDay, team);
+        defendableTerritories =
+            TerritoryService.GetDefendableTerritories(season, lastRoll, team);
 
-        attackableTerritories = TerritoryService.GetAttackableTerritories(team, season, currentDay);
+            attackableTerritories = TerritoryService.GetAttackableTerritories(season, lastRoll, team);
     }
 
     private string GetNeighborDisplay(string neighborsJson)

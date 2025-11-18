@@ -12,7 +12,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 //     Schema:                 `public`
 //     Include Views:          `true`
 //
-//     Last Generated:         `11/16/2025 10:59:40 AM`
+//     Last Generated:         `11/17/2025 6:15:53 PM`
 
 
 
@@ -285,8 +285,8 @@ namespace CFBROrders.SDK.Models
         public int PreviousOwnerId { get; set; }
         [Column("starpower_allocation")]
         public int? StarpowerAllocation { get; set; }
-        [Column("priority")]
-        public int? Priority { get; set; }
+        [Column("tier")]
+        public int? Tier { get; set; }
     }
     [Table("past_turns")]
     public partial class PastTurn

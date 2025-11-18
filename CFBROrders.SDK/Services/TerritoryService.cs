@@ -4,11 +4,7 @@ using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace CFBROrders.SDK.Services
 {
@@ -21,7 +17,34 @@ namespace CFBROrders.SDK.Services
 
         private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).Db;
 
-        public List<TerritoryOwnershipWithNeighbor> GetTerritoryOwnershipWithNeighbors(int season, int day, string team )
+        private static readonly JsonSerializerOptions _jsonOptions =
+            new() { PropertyNameCaseInsensitive = true };
+
+        private static void ParseNeighbors(IEnumerable<TerritoryOwnershipWithNeighbor> territories)
+        {
+            foreach (var t in territories)
+            {
+                if (!string.IsNullOrWhiteSpace(t.Neighbors))
+                {
+                    try
+                    {
+                        t.NeighborList =
+                            JsonSerializer.Deserialize<List<Neighbor>>(t.Neighbors, _jsonOptions)
+                            ?? [];
+                    }
+                    catch
+                    {
+                        t.NeighborList = [];
+                    }
+                }
+                else
+                {
+                    t.NeighborList = [];
+                }
+            }
+        }
+
+        public List<TerritoryOwnershipWithNeighbor> GetDefendableTerritories(int season, int day, string team)
         {
             Result.Reset();
 
@@ -30,35 +53,75 @@ namespace CFBROrders.SDK.Services
             try
             {
                 teams = Db.Fetch<TerritoryOwnershipWithNeighbor>(
-                    @"SELECT 
-                        *
-                      FROM territory_ownership_with_neighbors WHERE season = @0 AND day = @1
-                        AND tName = @2", season, day, team
+                    @"
+                    SELECT *
+                    FROM territory_ownership_with_neighbors t
+                    WHERE t.season = @0
+                      AND t.day = @1
+                      AND t.tname = @2
+                      AND EXISTS (
+                          SELECT 1
+                          FROM jsonb_array_elements(t.neighbors::jsonb) AS n(neighbor)
+                          WHERE neighbor->>'owner' <> t.tname
+                      )
+                    ",
+                    season, day, team
                 ).ToList();
+
+                ParseNeighbors(teams);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while fetching all Teams with neighbors.");
-                
+                _logger.LogError(ex, $"An error occurred while fetching defending territories for {team} on season {season} day {day}.");
                 Result.GetException(ex);
-
                 throw;
             }
-            _logger.LogInformation($"Fetched territory ownership with neighbors for Season {season}, Day {day}, and Team {team}.");
-            
+
+            _logger.LogInformation($"Fetched defending territories for Season {season}, Day {day}, Team {team}.");
             return teams;
         }
 
-        public List<(string Name, string Owner)> GetAttackableTerritories(string team, int season, int day)
+        public List<TerritoryOwnershipWithNeighbor> GetAttackableTerritories(int season, int day, string team)
         {
-            var territories = GetTerritoryOwnershipWithNeighbors(season, day, team);
+            Result.Reset();
 
-            return territories.SelectMany(t => t.NeighborList)
-                              .Where(n => n.Owner != team)
-                              .GroupBy(n => n.Name)
-                              .Select(g => (g.Key, g.First().Owner))
-                              .OrderBy(t => t.Key)
-                              .ToList();
+            List<TerritoryOwnershipWithNeighbor> territories;
+
+            try
+            {
+                territories = Db.Fetch<TerritoryOwnershipWithNeighbor>(
+                    @"
+                    SELECT *
+                    FROM territory_ownership_with_neighbors t
+                    WHERE t.season = @0
+                      AND t.day = @1
+                      AND t.tname <> @2
+                      AND EXISTS (
+                            SELECT 1
+                            FROM jsonb_array_elements(t.neighbors::jsonb) AS n(neighbor)
+                            WHERE neighbor->>'owner' = @2
+                      )
+                      AND NOT EXISTS (
+                            SELECT 1
+                            FROM jsonb_array_elements(t.neighbors::jsonb) AS n(neighbor)
+                            WHERE (neighbor->>'id')::int = 131
+                      );
+                    ",
+                    season, day, team
+                ).ToList();
+
+                ParseNeighbors(territories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    $"Error fetching attackable territories for {team} (Season {season}, Day {day}).");
+                Result.GetException(ex);
+                throw;
+            }
+
+            _logger.LogInformation($"Fetched attackable territories for Season {season}, Day {day}, Team {team}.");
+            return territories;
         }
     }
 }
