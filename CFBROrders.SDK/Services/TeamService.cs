@@ -46,6 +46,32 @@ namespace CFBROrders.SDK.Services
             return teamName;
         }
 
+        public int GetTeamIdByTeamName(string name)
+        {
+            Result.Reset();
+
+            int teamId;
+
+            try
+            {
+                teamId = Db.SingleOrDefault<int>(
+                    @"SELECT id
+                      FROM teams WHERE tname = @0", name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while fetching id for {name}");
+
+                Result.GetException(ex);
+
+                throw;
+            }
+            _logger.LogInformation($"Fetched id for {name}");
+
+            return teamId;
+        }
+
+
         public string GetTeamColorByTeamId(int id)
         {
             Result.Reset();
@@ -71,15 +97,15 @@ namespace CFBROrders.SDK.Services
             return color;
 
         }
-        public double GetTeamStarPowerForTurn(string tname, int season, int day)
+        public int GetTeamStarPowerForTurn(string tname, int season, int day)
         {
             Result.Reset();
 
-            double starpower;
+            int starpower;
 
             try
             {
-                starpower = Db.SingleOrDefault<double>(
+                starpower = Db.SingleOrDefault<int>(
                     @"SELECT starpower
                       FROM statistics WHERE tname = @0 AND season = @1 AND day = @2", tname, season, day);
             }

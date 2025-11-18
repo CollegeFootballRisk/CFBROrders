@@ -147,6 +147,7 @@ builder.Services.AddScoped<IUnitOfWork, NPocoUnitOfWork>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITerritoryService, TerritoryService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<IOrderAllocationService, OrderAllocationService>();
 
 builder.Services.AddHttpContextAccessor();
 

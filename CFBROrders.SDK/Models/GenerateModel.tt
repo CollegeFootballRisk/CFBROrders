@@ -15,7 +15,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 
-using System.ComponentModel.DataAnnotations.Schema;
+using NPoco;
 
 <#
 string configPath = Host.ResolvePath(@"..\App.config");
@@ -95,7 +95,9 @@ foreach (var table in tables)
         }
     }
 #>
-    [Table("<#= table #>")]
+    [NPoco.TableName("<#= table #>")]
+    [NPoco.PrimaryKey("id", AutoIncrement = true)]
+
     public partial class <#= Singularize(PascalCase(table)) #>
     {
 <#

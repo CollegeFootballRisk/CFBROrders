@@ -11,7 +11,10 @@ namespace CFBROrders.SDK.Interfaces.Services
     {
         public string GetTeamNameByTeamId(int id);
 
+        public int GetTeamIdByTeamName(string name);
+
         public string GetTeamColorByTeamId(int id);
-        public double GetTeamStarPowerForTurn(string tname, int season, int day);
+
+        public int GetTeamStarPowerForTurn(string tname, int season, int day);
     }
 }

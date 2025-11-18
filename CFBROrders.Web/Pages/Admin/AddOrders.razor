@@ -56,6 +56,16 @@
             </Template>
         </RadzenDataGridColumn>
 
+        <RadzenDataGridColumn Title="Star Power">
+            <Template Context="territory">
+                <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
+                               TValue="int"
+                               Style="width:100%;"
+                               Min="0"
+                               Max="@starPower" />
+            </Template>
+        </RadzenDataGridColumn>
+
         <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Tier">
             <Template Context="territory">
                 <RadzenDropDown @bind-Value="territory.Tier"
@@ -65,13 +75,8 @@
             </Template>
         </RadzenDataGridColumn>
 
-
-        <RadzenDataGridColumn Title="Star Power">
-            <Template>0</Template>
-        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
-
 
 <br />
 
@@ -83,9 +88,22 @@
         <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Territory">
             <Template Context="n">@n.Name</Template>
         </RadzenDataGridColumn>
+
         <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Owner">
             <Template Context="n">@n.Tname</Template>
         </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn Title="Star Power">
+            <Template Context="territory">
+                <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
+                               TValue="int"
+                               Style="width:100%;"
+                               Min="0"
+                               Max="@starPower" />
+            </Template>
+        </RadzenDataGridColumn>
+
+
         <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Tier">
             <Template Context="territory">
                 <RadzenDropDown @bind-Value="territory.Tier"
@@ -95,11 +113,14 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn Title="Star Power">
-            <Template>0</Template>
-        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
+
+<br />
+<RadzenButton Text="Submit Orders"
+              Icon="save"
+              Style="margin-top:20px"
+              Click="@SubmitOrders"/>
 
 @code {
     [CascadingParameter] 
@@ -118,11 +139,12 @@
     private int overall;
     private int season = 5;
     private int lastRoll = 2;
-    private double starPower;
+    private int starPower;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        var user = (AuthenticationStateTask.Result).User;
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
 
         username = user.FindFirstValue("Username");
         team = user.FindFirstValue("CurrentTeam");
@@ -131,12 +153,11 @@
 
         starPower = TeamService.GetTeamStarPowerForTurn(team, season, lastRoll - 1);
 
-        _logger.LogInformation("Fetching territory ownership for team {Team}", team);
-
         defendableTerritories =
             TerritoryService.GetDefendableTerritories(season, lastRoll, team);
 
-            attackableTerritories = TerritoryService.GetAttackableTerritories(season, lastRoll, team);
+        attackableTerritories =
+            TerritoryService.GetAttackableTerritories(season, lastRoll, team);
     }
 
     private string GetNeighborDisplay(string neighborsJson)
@@ -155,5 +176,54 @@
         {
             return "Invalid data";
         }
+    }
+
+    private async Task SubmitOrders()
+    {
+        // Merge both lists
+        var allTerritories = defendableTerritories.Concat(attackableTerritories).ToList();
+
+        // Filter entries that actually have data
+        var allocations = allTerritories
+            .Select(t => new OrderAllocation
+            {
+                TurnId = lastRoll,
+                TeamId = TeamService.GetTeamIdByTeamName(team),
+                TerritoryId = t.TerritoryId,
+                OwnerId = 4,
+                PreviousOwnerId = 4,
+                StarpowerAllocation = t.StarPowerAllocation,
+                Tier = t.Tier
+            })
+            .ToList();
+
+        // Validate star power limit
+        var total = allocations.Sum(x => x.StarpowerAllocation ?? 0);
+
+        // if (total > starPower)
+        // {
+        //     NotificationService.Notify(new NotificationMessage
+        //     {
+        //         Severity = NotificationSeverity.Error,
+        //         Summary = "Too much star power",
+        //         Detail = $"You allocated {total} but you only have {starPower}."
+        //     });
+        //     return;
+        // }
+
+        // Save to database
+        var result = OrderAllocationService.InsertOrderAllocations(allocations);
+
+        if (result.IsError)
+        {
+            Navigation.NavigateTo("/error");
+        }
+
+        // NotificationService.Notify(new NotificationMessage
+        // {
+        //     Severity = NotificationSeverity.Success,
+        //     Summary = "Orders submitted",
+        //     Detail = "Your orders were saved."
+        // });
     }
 }

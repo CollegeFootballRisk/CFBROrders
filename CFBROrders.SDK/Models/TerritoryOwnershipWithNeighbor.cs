@@ -17,6 +17,6 @@ namespace CFBROrders.SDK.Models
 
         public int Tier { get; set; } = 1;
 
-        public int? StarPowerAllocation { get; set; }
+        public int StarPowerAllocation { get; set; }
     }
 }
