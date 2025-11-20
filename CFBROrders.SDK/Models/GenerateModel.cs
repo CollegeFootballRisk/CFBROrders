@@ -12,7 +12,7 @@ using NPoco;
 //     Schema:                 `public`
 //     Include Views:          `true`
 //
-//     Last Generated:         `11/18/2025 8:19:47 PM`
+//     Last Generated:         `11/19/2025 7:59:42 PM`
 
 
 
@@ -655,15 +655,22 @@ namespace CFBROrders.SDK.Models
         [Column("turn_id")]
         public int? TurnId { get; set; }
     } 
-    [NPoco.TableName("userorders")]
-    public partial class Userorder
+    [NPoco.TableName("user_orders")]
+    [NPoco.PrimaryKey("id", AutoIncrement = true)]
+    public partial class UserOrder
     {
         [Column("id")]
         public int Id { get; set; }
-        [Column("userid")]
-        public int Userid { get; set; }
+        [Column("username")]
+        public string Username { get; set; }
+        [Column("season_id")]
+        public int SeasonId { get; set; }
+        [Column("turn_id")]
+        public int TurnId { get; set; }
+        [Column("team")]
+        public string Team { get; set; }
         [Column("territory_id")]
-        public int TerritoryId { get; set; }
+        public int? TerritoryId { get; set; }
         [Column("starpower")]
         public int Starpower { get; set; }
     } 

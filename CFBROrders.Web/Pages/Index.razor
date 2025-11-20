@@ -11,35 +11,69 @@
 @(new string('✯', overall))
 </span>
 
-
 <p>Today is @DateTime.Today.ToLongDateString()</p>
 
 <p>Click one of the buttons below to choose your deployment, solider!</p>
 
-<RadzenButton Text="I want to Attack" 
-              style="@( $"background-color:{color}; color:{textColor}; border-radius:0;" )" />
+<RadzenButton Text="I want to Attack"
+              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Click="@ShowAttackChoices" />
 
-<RadzenButton Text="I want to Defend" 
-              style="@( $"background-color:{color}; color:{textColor}; border-radius:0;" )" />
+<RadzenButton Text="I want to Defend"
+              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Click="@ShowDefendChoices" />
 
-<RadzenButton Text="I want to manually pick my territory" 
-              style="@( $"background-color:{color}; color:{textColor}; border-radius:0;" )" />
+<RadzenButton Text="I want to manually pick my territory"
+              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")" />
 
-<RadzenButton Text="I don't care" 
-              style="@( $"background-color:{color}; color:{textColor}; border-radius:0;" )" />
+<RadzenButton Text="I don't care"
+              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")" />
 
+@if (showDefend)
+{
+    <ul>
+        @foreach (var t in randomDefend)
+        {
+            <br />
+           <RadzenButton Text="@t.Name"
+              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Click="@(args => SubmitUserOrder(t))" />
+
+        }
+    </ul>
+}
+
+@if (showAttack)
+{
+    <ul>
+        @foreach (var t in randomAttack)
+        {
+            <br />
+            <RadzenButton Text="@t.Name"
+              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Click="@(args => SubmitUserOrder(t))" />
+
+        }
+    </ul>
+}
 
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
+    private List<TerritoryOwnershipWithNeighbor> randomDefend = new();
+    private List<TerritoryOwnershipWithNeighbor> randomAttack = new();
+
+    private bool showDefend = false;
+    private bool showAttack = false;
     private string username;
     private string team;
     private string color;
-    private int overall;
-
     private string textColor;
     private string shadowColor;
+    private int overall;
+    private int turn_id = 3;
+    private int season = 5;
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,6 +100,56 @@
         double luminance = (0.299 * r + 0.587 * g + 0.114 * b);
 
         return luminance > 150 ? "black" : "white";
+    }
+
+    private async Task ShowDefendChoices()
+    {
+        var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, team);
+
+        randomDefend = defendable
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(3)
+            .ToList();
+
+        showDefend = true;
+        showAttack = false;
+    }
+
+    private async Task ShowAttackChoices()
+    {
+        var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, team);
+
+        randomAttack = attackable
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(3)
+            .ToList();
+
+        showAttack = true;
+        showDefend = false;
+    }
+
+    private async Task SubmitUserOrder(TerritoryOwnershipWithNeighbor territory)
+    {
+        var userOrder = new UserOrder
+        {
+            Username = username,
+            SeasonId = season,
+            TurnId = turn_id,
+            Team = team,
+            TerritoryId = territory.TerritoryId,
+            Starpower = overall,   
+        };
+
+        var result = UserOrderService.InsertUserOrder(userOrder);
+
+        if (result.IsError)
+        {
+            Navigation.NavigateTo("/error");
+            return;
+        }
+
+        Navigation.NavigateTo($"/confirmation/{territory.Name}");
+
     }
 
 }

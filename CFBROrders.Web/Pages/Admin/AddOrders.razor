@@ -234,6 +234,7 @@
             .Where(t => t.StarPowerAllocation > 0)
             .Select(t => new OrderAllocation
             {
+                SeasonId = season,
                 TurnId = lastRoll + 1,
                 TeamId = userTeamId,
                 TerritoryId = t.TerritoryId,
