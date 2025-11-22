@@ -10,6 +10,10 @@ namespace CFBROrders.SDK.Interfaces.Services
 {
     public interface IUserOrderService
     {
-        public IOperationResult InsertUserOrder(UserOrder userOrder);        
+        public UserOrder GetUserOrder(string username, int seasonId, int turnId);
+
+        public IOperationResult InsertUserOrder(UserOrder userOrder);    
+        
+        public IOperationResult UpdateUserOrder(UserOrder userOrder);
     }
 }

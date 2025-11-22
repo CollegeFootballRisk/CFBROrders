@@ -16,6 +16,9 @@
 
 <p>Remember to submit your move on <a href='https://dough.collegefootballrisk.com/#MyMove'>CollegeFootballRisk.com</a>.</p>
 
+<RadzenButton Text="Change Move"
+              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Click="@ChangeMove" />
 
 @code {
     [CascadingParameter]
@@ -41,5 +44,10 @@
         username = user.FindFirstValue("Username");
         team = user.FindFirstValue("CurrentTeam");
         overall = int.Parse(user.FindFirstValue("Overall"));
+    }
+
+    private void ChangeMove()
+    {
+        Navigation.NavigateTo("/");
     }
 }

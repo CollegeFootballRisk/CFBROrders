@@ -32,12 +32,12 @@
 @if (showDefend)
 {
     <ul>
-        @foreach (var t in randomDefend)
+        @foreach (var territory in randomDefend)
         {
             <br />
-           <RadzenButton Text="@t.Name"
+           <RadzenButton Text="@territory.Name"
               Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
-              Click="@(args => SubmitUserOrder(t))" />
+              Click="@(args => SubmitOrUpdateUserOrder(territory))" />
 
         }
     </ul>
@@ -46,12 +46,12 @@
 @if (showAttack)
 {
     <ul>
-        @foreach (var t in randomAttack)
+        @foreach (var territory in randomAttack)
         {
             <br />
-            <RadzenButton Text="@t.Name"
+            <RadzenButton Text="@territory.Name"
               Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
-              Click="@(args => SubmitUserOrder(t))" />
+              Click="@(args => SubmitOrUpdateUserOrder(territory))" />
 
         }
     </ul>
@@ -128,28 +128,44 @@
         showDefend = false;
     }
 
-    private async Task SubmitUserOrder(TerritoryOwnershipWithNeighbor territory)
+    private async Task SubmitOrUpdateUserOrder(TerritoryOwnershipWithNeighbor territory)
     {
-        var userOrder = new UserOrder
+        var existingOrder = UserOrderService.GetUserOrder(username, season, turn_id);
+
+        if (existingOrder == null)
         {
+            var userOrder = new UserOrder
+            {
             Username = username,
             SeasonId = season,
             TurnId = turn_id,
             Team = team,
             TerritoryId = territory.TerritoryId,
             Starpower = overall,   
-        };
+            };
 
-        var result = UserOrderService.InsertUserOrder(userOrder);
+            var result = UserOrderService.InsertUserOrder(userOrder);
 
-        if (result.IsError)
+            if (result.IsError)
+            {
+                Navigation.NavigateTo("/error");
+                return;
+            }
+
+        }
+        else
         {
-            Navigation.NavigateTo("/error");
-            return;
+            existingOrder.TerritoryId = territory.TerritoryId;
+
+            var result = UserOrderService.UpdateUserOrder(existingOrder);
+
+            if (result.IsError)
+            {
+                Navigation.NavigateTo("/error");
+                return;
+            }
         }
 
         Navigation.NavigateTo($"/confirmation/{territory.Name}");
-
     }
-
 }
