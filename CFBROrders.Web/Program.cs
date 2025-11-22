@@ -19,6 +19,12 @@ using System.Security.Claims;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddEnvironmentVariables()
+    .AddUserSecrets<Program>(optional: true);
+
 var connectionString = builder.Configuration.GetConnectionString("CFBROrdersConnectionString")
     ?? throw new InvalidOperationException("Connection string 'CFBROrdersConnectionString' not found.");
 
