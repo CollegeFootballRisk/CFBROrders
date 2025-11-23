@@ -5,6 +5,7 @@ using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
 using CFBROrders.SDK.Repositories;
 using CFBROrders.SDK.Services;
+using CFBROrders.Web;
 using CFBROrders.Web.Auth;
 using CFBROrders.Web.Data;
 using CFBROrders.Web.Endpoints;
@@ -81,6 +82,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
+app.UseMiddleware<UserLoggingMiddleware>();
 app.UseAuthorization();
 
 // External API Calls 

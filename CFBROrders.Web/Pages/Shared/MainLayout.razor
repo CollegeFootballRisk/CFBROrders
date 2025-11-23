@@ -72,6 +72,8 @@
             CurrentUser.Color = user.FindFirstValue("Color");
             CurrentUser.ContrastColor = user.FindFirstValue("ContrastColor");
             CurrentUser.Overall = int.Parse(user.FindFirstValue("Overall"));
+
+            NLog.ScopeContext.PushProperty("Username", CurrentUser.Username);
         }
     }
 }

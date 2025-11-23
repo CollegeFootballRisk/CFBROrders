@@ -91,7 +91,7 @@ namespace CFBROrders.SDK.Services
 
                 throw;
             }
-            _logger.LogInformation($"Fetched color for  team id: {id}");
+            _logger.LogInformation($"Fetched color for team id: {id}");
 
             return color;
 
