@@ -1,15 +1,13 @@
 ﻿@page "/"
 @layout MainLayout
-@inject ILogger<Index> _logger
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
-<h1>Welcome @username</h1>
+<h1>Welcome @CurrentUser.Username</h1>
 <p>I'm trying to test something here'</p>
 
 <span class="star"
-    style="color:@color; text-shadow:0 0 5px @shadowColor;">
-@(new string('✯', overall))
+        style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
+        @(new string('✯', CurrentUser.Overall))
 </span>
 
 <p>Today is @DateTime.Today.ToLongDateString()</p>
@@ -17,18 +15,18 @@
 <p>Click one of the buttons below to choose your deployment, solider!</p>
 
 <RadzenButton Text="I want to Attack"
-              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
               Click="@ShowAttackChoices" />
 
 <RadzenButton Text="I want to Defend"
-              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
               Click="@ShowDefendChoices" />
 
 <RadzenButton Text="I want to manually pick my territory"
-              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")" />
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")" />
 
 <RadzenButton Text="I don't care"
-              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")" />
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")" />
 
 @if (showDefend)
 {
@@ -37,7 +35,7 @@
         {
             <br />
            <RadzenButton Text="@territory.Name"
-              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
               Click="@(args => SubmitOrUpdateUserOrder(territory))" />
 
         }
@@ -51,7 +49,7 @@
         {
             <br />
             <RadzenButton Text="@territory.Name"
-              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
               Click="@(args => SubmitOrUpdateUserOrder(territory))" />
 
         }
@@ -60,52 +58,19 @@
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+    public CurrentUser CurrentUser { get; set; }
 
     private List<TerritoryOwnershipWithNeighbor> randomDefend = new();
     private List<TerritoryOwnershipWithNeighbor> randomAttack = new();
 
     private bool showDefend = false;
     private bool showAttack = false;
-    private string username;
-    private string team;
-    private string color;
-    private string textColor;
-    private string shadowColor;
-    private int overall;
     private int turn_id = 3;
     private int season = 5;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationStateTask;
-        var user = authState.User;
-
-        username = user.FindFirstValue("Username");
-        team = user.FindFirstValue("CurrentTeam");
-        overall = int.Parse(user.FindFirstValue("Overall"));
-        color = user.FindFirstValue("Color");
-
-        textColor = GetContrastColor(color);
-        shadowColor = textColor == "white" ? "white" : "black";
-    }
-
-    private string GetContrastColor(string hexColor)
-    {
-        hexColor = hexColor.Replace("#", "");
-
-        int r = Convert.ToInt32(hexColor.Substring(0, 2), 16);
-        int g = Convert.ToInt32(hexColor.Substring(2, 2), 16);
-        int b = Convert.ToInt32(hexColor.Substring(4, 2), 16);
-
-        double luminance = (0.299 * r + 0.587 * g + 0.114 * b);
-
-        return luminance > 150 ? "black" : "white";
-    }
-
     private async Task ShowDefendChoices()
     {
-        var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, team);
+        var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, CurrentUser.Team);
 
         randomDefend = defendable
             .OrderBy(_ => Guid.NewGuid())
@@ -118,7 +83,7 @@
 
     private async Task ShowAttackChoices()
     {
-        var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, team);
+        var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, CurrentUser.Team);
 
         randomAttack = attackable
             .OrderBy(_ => Guid.NewGuid())
@@ -131,18 +96,18 @@
 
     private async Task SubmitOrUpdateUserOrder(TerritoryOwnershipWithNeighbor territory)
     {
-        var existingOrder = UserOrderService.GetUserOrder(username, season, turn_id);
+        var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
 
         if (existingOrder == null)
         {
             var userOrder = new UserOrder
             {
-            Username = username,
-            SeasonId = season,
-            TurnId = turn_id,
-            Team = team,
-            TerritoryId = territory.TerritoryId,
-            Starpower = overall,   
+                Username = CurrentUser.Username,
+                SeasonId = season,
+                TurnId = turn_id,
+                Team = CurrentUser.Team,
+                TerritoryId = territory.TerritoryId,
+                Starpower = CurrentUser.Overall,   
             };
 
             var result = UserOrderService.InsertUserOrder(userOrder);

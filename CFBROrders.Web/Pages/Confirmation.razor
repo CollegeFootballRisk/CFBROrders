@@ -1,12 +1,10 @@
 ﻿@page "/confirmation/{territory}"
 @layout MainLayout
-@inject ILogger<Index> _logger
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
 <h1>Confirmation</h1>
 
-<h2>Thank you, @username</h2>
+<h2>Thank you, @CurrentUser.Username</h2>
 <p>i'm testing here'</p>
 <p> You chose </p>
 
@@ -17,34 +15,15 @@
 <p>Remember to submit your move on <a href='https://dough.collegefootballrisk.com/#MyMove'>CollegeFootballRisk.com</a>.</p>
 
 <RadzenButton Text="Change Move"
-              Style="@($"background-color:{color}; color:{textColor}; border-radius:0;")"
+              Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
               Click="@ChangeMove" />
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+    public CurrentUser CurrentUser { get; set; }
 
     [Parameter]
     public string territory { get; set; }
-
-    private string username;
-    private string team;
-    private string color;
-    private string textColor;
-    private string shadowColor;
-    private int overall;
-    private int turn_id = 3;
-    private int season = 5;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationStateTask;
-        var user = authState.User;
-
-        username = user.FindFirstValue("Username");
-        team = user.FindFirstValue("CurrentTeam");
-        overall = int.Parse(user.FindFirstValue("Overall"));
-    }
 
     private void ChangeMove()
     {

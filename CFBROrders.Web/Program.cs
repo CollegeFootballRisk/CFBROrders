@@ -8,6 +8,8 @@ using CFBROrders.SDK.Services;
 using CFBROrders.Web.Auth;
 using CFBROrders.Web.Data;
 using CFBROrders.Web.Endpoints;
+using CFBROrders.Web.Handlers;
+using CFBROrders.Web.Interfaces.Handlers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -59,6 +61,8 @@ builder.Services.AddScoped<ITerritoryService, TerritoryService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<IOrderAllocationService, OrderAllocationService>();
 builder.Services.AddScoped<IUserOrderService, UserOrderService>();
+
+builder.Services.AddSingleton<IColorHandler, ColorHandler>();
 
 builder.Services.AddHttpContextAccessor();
 

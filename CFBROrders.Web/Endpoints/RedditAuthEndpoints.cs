@@ -1,5 +1,6 @@
 ﻿using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
+using CFBROrders.Web.Handlers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
@@ -82,6 +83,11 @@ namespace CFBROrders.Web.Endpoints
                     return;
                 }
 
+                var color = TeamService.GetTeamColorByTeamId(user.CurrentTeam);
+
+                var colorHandler = new ColorHandler();
+                var contrastColor = colorHandler.GetContrastColor(color);
+
                 var claims = new List<Claim>
                 {
                     new ("UserId", user.Id.ToString()),
@@ -89,7 +95,8 @@ namespace CFBROrders.Web.Endpoints
                     new ("Platform", user.Platform ?? ""),
                     new ("CurrentTeam", TeamService.GetTeamNameByTeamId(user.CurrentTeam)),
                     new ("Overall", UserService.GetOverallByUserId(user.Id).ToString()),
-                    new ("Color", TeamService.GetTeamColorByTeamId(user.CurrentTeam))
+                    new ("Color", color),
+                    new ("ContrastColor", contrastColor)
 
                 };
 

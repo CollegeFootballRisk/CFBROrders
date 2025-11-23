@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>CFBR Orders</PageTitle>
 
@@ -47,7 +48,30 @@
 
     <main>
         <article class="content p-md-4 p-2">
-            @Body
+
+            <CascadingValue Value="CurrentUser">
+                @Body
+            </CascadingValue>
+
         </article>
     </main>
 </div>
+
+@code {
+    public CurrentUser CurrentUser { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            CurrentUser.Username = user.FindFirstValue("Username");
+            CurrentUser.Team = user.FindFirstValue("CurrentTeam");
+            CurrentUser.Color = user.FindFirstValue("Color");
+            CurrentUser.ContrastColor = user.FindFirstValue("ContrastColor");
+            CurrentUser.Overall = int.Parse(user.FindFirstValue("Overall"));
+        }
+    }
+}

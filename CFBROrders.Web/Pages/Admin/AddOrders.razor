@@ -1,18 +1,17 @@
 ﻿@page "/admin/AddOrders"
 @layout MainLayout
-@inject ILogger<AddOrders> _logger
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IColorHandler ColorHandler
 @attribute [Authorize]
 
 <h1>Add Orders</h1>
 <hr />
 
 <p>
-    @username playing for @team has 
-<span class="star"
-    style="color:@color; text-shadow:0 0 5px @shadowColor;">
-@(new string('✯', overall))
-</span>
+    @CurrentUser.Username playing for @CurrentUser.Team has 
+    <span class="star"
+        style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
+        @(new string('✯', CurrentUser.Overall))
+    </span>
 </p>
 
 <p>
@@ -35,7 +34,7 @@
             <Template Context="territory">
                 @{
                     var opposingNeighbors = territory.NeighborList
-                    .Where(n => n.Owner != team)
+                    .Where(n => n.Owner != CurrentUser.Team)
                     .ToList();
                 }
 
@@ -138,11 +137,11 @@
 <RadzenButton Text="Submit Orders"
               Icon="save"
               Style="margin-top:20px"
-              Click="@SubmitOrders"/>
+              Click="@SubmitOrderAllocations"/>
 
 @code {
     [CascadingParameter] 
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+    public CurrentUser CurrentUser { get; set; }
 
     private List<TerritoryOwnershipWithNeighbor> defendableTerritories = new();
     private List<TerritoryOwnershipWithNeighbor> attackableTerritories = new();
@@ -151,54 +150,25 @@
     int[] pagingOptions = { 5, 10, 20, 50 };
     private List<int> tierOptions = Enumerable.Range(1, 10).ToList();
 
-    private string username;
-    private string team;
-    private string color;
-    private int overall;
     private int season = 5;
     private int lastRoll = 2;
     private int starPower;
 
-    private string shadowColor;
+    private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
 
-    private int TotalDefendable => defendableTerritories.Sum(t => t.StarPowerAllocation);
-
-    private int TotalAttackable => attackableTerritories.Sum(t => t.StarPowerAllocation);
+    private int TotalAttackable => attackableTerritories.Sum(territory => territory.StarPowerAllocation);
 
     private int TotalStarPowerUsed => TotalDefendable + TotalAttackable;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateTask;
-        var user = authState.User;
-
-        username = user.FindFirstValue("Username");
-        team = user.FindFirstValue("CurrentTeam");
-        overall = int.Parse(user.FindFirstValue("Overall"));
-        color = user.FindFirstValue("Color");
-
-        starPower = TeamService.GetTeamStarPowerForTurn(team, season, lastRoll - 1);
+        starPower = TeamService.GetTeamStarPowerForTurn(CurrentUser.Team, season, lastRoll - 1);
 
         defendableTerritories =
-            TerritoryService.GetDefendableTerritories(season, lastRoll, team);
+            TerritoryService.GetDefendableTerritories(season, lastRoll, CurrentUser.Team);
 
         attackableTerritories =
-            TerritoryService.GetAttackableTerritories(season, lastRoll, team);
-
-            shadowColor = GetContrastColor(color) == "white" ? "white" : "black";
-    }
-
-    private string GetContrastColor(string hexColor)
-    {
-        hexColor = hexColor.Replace("#", "");
-
-        int r = Convert.ToInt32(hexColor.Substring(0, 2), 16);
-        int g = Convert.ToInt32(hexColor.Substring(2, 2), 16);
-        int b = Convert.ToInt32(hexColor.Substring(4, 2), 16);
-
-        double luminance = (0.299 * r + 0.587 * g + 0.114 * b);
-
-        return luminance > 150 ? "black" : "white";
+            TerritoryService.GetAttackableTerritories(season, lastRoll, CurrentUser.Team);
     }
 
     private string GetNeighborDisplay(string neighborsJson)
@@ -219,33 +189,32 @@
         }
     }
 
-    private async Task SubmitOrders()
+    private async Task SubmitOrderAllocations()
     {
-        var userTeamId = TeamService.GetTeamIdByTeamName(team);
+        var userTeamId = TeamService.GetTeamIdByTeamName(CurrentUser.Team);
 
         var allTerritories = defendableTerritories.Concat(attackableTerritories).ToList();
 
         var ownerTeamIds = allTerritories
-            .Select(t => t.Tname)
+            .Select(territory => territory.Tname)
             .Distinct()
-            .ToDictionary(n => n, n => TeamService.GetTeamIdByTeamName(n));
+            .ToDictionary(name => name, name => TeamService.GetTeamIdByTeamName(name));
 
         var allocations = allTerritories
-            .Where(t => t.StarPowerAllocation > 0)
-            .Select(t => new OrderAllocation
+            .Where(territory => territory.StarPowerAllocation > 0)
+            .Select(territory => new OrderAllocation
             {
                 SeasonId = season,
                 TurnId = lastRoll + 1,
                 TeamId = userTeamId,
-                TerritoryId = t.TerritoryId,
-                OwnerId = ownerTeamIds[t.Tname!],
-                StarpowerAllocation = t.StarPowerAllocation,
-                Tier = t.Tier
+                TerritoryId = territory.TerritoryId,
+                OwnerId = ownerTeamIds[territory.Tname!],
+                StarpowerAllocation = territory.StarPowerAllocation,
+                Tier = territory.Tier
             })
             .ToList();
 
-        var total = allocations.Sum(x => x.StarpowerAllocation ?? 0);
-
+        var total = allocations.Sum(orderAllocation => orderAllocation.StarpowerAllocation ?? 0);
 
         var result = OrderAllocationService.InsertOrderAllocations(allocations);
 
