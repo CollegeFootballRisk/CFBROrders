@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace CFBROrders.Web
+namespace CFBROrders.Web.Helpers
 {
     public class UserLoggingMiddleware
     {
