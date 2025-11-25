@@ -5,7 +5,8 @@
 
 <div class="page">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-dark bg-primary bg-gradient border-bottom box-shadow mb-3">
+       <nav class="navbar navbar-expand-sm border-bottom box-shadow mb-3"
+            style="background-color:@NavbarColor; color:@NavbarContrast;">
             <div class="container-fluid d-md-inline-flex align-items-center">
                 <NavLink class="navbar-brand" href="/">
                     <img class="img-fluid" width="40" height="40" alt="Rainbow Logo"
@@ -76,4 +77,8 @@
             NLog.ScopeContext.PushProperty("Username", CurrentUser.Username);
         }
     }
+
+    public string NavbarColor => string.IsNullOrWhiteSpace(CurrentUser.Color) ? "#0d6efd": CurrentUser.Color;
+
+    public string NavbarContrast => string.IsNullOrWhiteSpace(CurrentUser.ContrastColor) ? "white" : CurrentUser.ContrastColor;
 }
