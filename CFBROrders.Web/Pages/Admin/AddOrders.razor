@@ -148,9 +148,9 @@
     int pageSize = 10;
     int[] pagingOptions = { 5, 10, 20, 50 };
     private List<int> tierOptions = Enumerable.Range(1, 10).ToList();
-    
-    private int season = 5;
-    private int lastRoll = 2;
+
+    private int season;
+    private int lastRoll;
     private int starPower;
 
     private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
@@ -161,6 +161,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        season = CurrentUser.Season;
+        lastRoll = CurrentUser.Turn;
+
         starPower = TeamService.GetTeamStarPowerForTurn(CurrentUser.Team, season, lastRoll - 1);
 
         defendableTerritories =

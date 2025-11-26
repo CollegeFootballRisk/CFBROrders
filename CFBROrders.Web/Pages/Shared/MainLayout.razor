@@ -68,11 +68,13 @@
 
         if (user.Identity?.IsAuthenticated == true)
         {
-            CurrentUser.Username = user.FindFirstValue("Username");
-            CurrentUser.Team = user.FindFirstValue("CurrentTeam");
             CurrentUser.Color = user.FindFirstValue("Color");
             CurrentUser.ContrastColor = user.FindFirstValue("ContrastColor");
             CurrentUser.Overall = int.Parse(user.FindFirstValue("Overall"));
+            CurrentUser.Season = int.Parse(user.FindFirstValue("Season"));
+            CurrentUser.Team = user.FindFirstValue("CurrentTeam"); 
+            CurrentUser.Turn = int.Parse(user.FindFirstValue("Turn"));
+            CurrentUser.Username = user.FindFirstValue("Username");
 
             NLog.ScopeContext.PushProperty("Username", CurrentUser.Username);
         }

@@ -3,7 +3,7 @@
 @attribute [Authorize]
 
 <h1>Welcome @CurrentUser.Username</h1>
-<p>I'm trying to test something here'</p>
+<p>I'm trying to test something here '</p>
 
 <span class="star"
         style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
@@ -99,8 +99,14 @@
     private bool showIndifferent = false;
     private bool showDefend = false;
     private bool showAttack = false;
-    private int turn_id = 3;
-    private int season = 5;
+    private int turn_id;
+    private int season;
+
+    protected override async Task OnInitializedAsync()
+    {
+        season = CurrentUser.Season;
+        turn_id = CurrentUser.Turn + 1;
+    }
 
     private async Task ShowDefendChoices()
     {

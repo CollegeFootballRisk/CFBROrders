@@ -1,5 +1,6 @@
 ﻿using CFBROrders.SDK.Interfaces.Services;
 using CFBROrders.SDK.Models;
+using CFBROrders.SDK.Services;
 using CFBROrders.Web.Handlers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -17,7 +18,8 @@ namespace CFBROrders.Web.Endpoints
                 await ctx.ChallengeAsync("Reddit", new AuthenticationProperties { RedirectUri = "/signin-reddit?ReturnUrl=" + returnUrl });
             });
 
-            app.MapGet("/signin-reddit", async (HttpContext ctx, IUserService UserService, ITeamService TeamService) =>
+            app.MapGet("/signin-reddit", async (HttpContext ctx, ITeamService TeamService, 
+                ITurnInfoService TurnInfoService, IUserService UserService) =>
             {
                 var logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -84,20 +86,23 @@ namespace CFBROrders.Web.Endpoints
                 }
 
                 var color = TeamService.GetTeamColorByTeamId(user.CurrentTeam);
-
                 var colorHandler = new ColorHandler();
                 var contrastColor = colorHandler.GetContrastColor(color);
+                var turnId = TurnInfoService.GetMostRecentCompletedTurnId();
+                var season = TurnInfoService.GetSeasonByTurnId(turnId);
+                var turn = TurnInfoService.GetTurnByTurnId(turnId);
 
                 var claims = new List<Claim>
                 {
-                    new ("UserId", user.Id.ToString()),
-                    new ("Username", user.Uname ?? ""),
-                    new ("Platform", user.Platform ?? ""),
+                    new ("Color", color),
+                    new ("ContrastColor", contrastColor),
                     new ("CurrentTeam", TeamService.GetTeamNameByTeamId(user.CurrentTeam)),
                     new ("Overall", UserService.GetOverallByUserId(user.Id).ToString()),
-                    new ("Color", color),
-                    new ("ContrastColor", contrastColor)
-
+                    new ("Platform", user.Platform ?? ""),
+                    new ("Season", season.ToString()),
+                    new ("Turn", turn.ToString()),
+                    new ("UserId", user.Id.ToString()),
+                    new ("Username", user.Uname ?? ""),
                 };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -62,6 +62,7 @@ builder.Services.AddScoped<ITerritoryService, TerritoryService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<IOrderAllocationService, OrderAllocationService>();
 builder.Services.AddScoped<IUserOrderService, UserOrderService>();
+builder.Services.AddScoped<ITurnInfoService, TurnInfoService>();
 
 builder.Services.AddSingleton<IColorHandler, ColorHandler>();
 

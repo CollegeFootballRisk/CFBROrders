@@ -2,11 +2,13 @@
 {
     public class CurrentUser
     {
-        public string Username { get; set; }
-        public string Team { get; set; }
         public string Color { get; set; }
         public string ContrastColor { get; set; }
         public int Overall { get; set; }
+        public int Season { get; set; }
+        public string Team { get; set; }
+        public int Turn { get; set; }
+        public string Username { get; set; }
     }
 
 }
