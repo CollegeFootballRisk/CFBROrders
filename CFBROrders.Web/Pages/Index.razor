@@ -113,6 +113,8 @@
 
         showDefend = true;
         showAttack = false;
+        showManual = false;
+        showIndifferent = false;
     }
 
     private async Task ShowAttackChoices()
@@ -125,6 +127,8 @@
             .ToList();
 
         showAttack = true;
+        showManual = false;
+        showIndifferent = false;
         showDefend = false;
     }
 
@@ -142,6 +146,7 @@
 
         showAttack = false;
         showDefend = false;
+        showManual = false;
         showIndifferent = true;
     }
 

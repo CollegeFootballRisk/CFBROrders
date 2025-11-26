@@ -2,14 +2,9 @@
 
 namespace CFBROrders.Web.Helpers
 {
-    public class UserLoggingMiddleware
+    public class UserLoggingMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
-
-        public UserLoggingMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
+        private readonly RequestDelegate _next = next;
 
         public async Task InvokeAsync(HttpContext context)
         {

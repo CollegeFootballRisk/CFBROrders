@@ -25,3 +25,7 @@ body {
   margin: 5px;
   font-size: 6rem;
 }
+
+.rz-numeric-button {
+  background-color: var(--arrow-color) !important;
+}

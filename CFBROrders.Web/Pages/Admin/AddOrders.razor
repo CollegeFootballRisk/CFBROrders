@@ -53,12 +53,11 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-
         <RadzenDataGridColumn Property="StarPowerAllocation" Title="Star Power">
             <Template Context="territory">
                 <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
                                TValue="int"
-                               Style="width:100%;"
+                               Style="@($"--arrow-color:{CurrentUser.Color}; width:100%;")"
                                Min="0"
                                Max="@starPower"/>
             </Template>
@@ -105,7 +104,7 @@
             <Template Context="territory">
                 <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
                                TValue="int"
-                               Style="width:100%;"
+                               Style="@($"--arrow-color:{CurrentUser.Color}; width:100%;")"
                                Min="0"
                                Max="@starPower"/>
             </Template>
@@ -136,7 +135,7 @@
 <br />
 <RadzenButton Text="Submit Orders"
               Icon="save"
-              Style="margin-top:20px"
+               Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
               Click="@SubmitOrderAllocations"/>
 
 @code {
@@ -149,7 +148,7 @@
     int pageSize = 10;
     int[] pagingOptions = { 5, 10, 20, 50 };
     private List<int> tierOptions = Enumerable.Range(1, 10).ToList();
-
+    
     private int season = 5;
     private int lastRoll = 2;
     private int starPower;
