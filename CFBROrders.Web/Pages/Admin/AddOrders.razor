@@ -1,5 +1,6 @@
 ﻿@page "/admin/AddOrders"
 @layout MainLayout
+@inject NotificationService NotificationService
 @attribute [Authorize]
 
 <h1>Add Orders</h1>
@@ -16,138 +17,192 @@
 }
 else 
 {
-<p>
-    @CurrentUser.Username playing for @CurrentUser.Team has 
-    <span class="star"
-        style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
-        @(new string('✯', CurrentUser.Overall))
-    </span>
-</p>
+    @if (!ordersSubmitted)
+    {
+        <p>
+        @CurrentUser.Username playing for @CurrentUser.Team has 
+        <span class="star"
+            style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
+            @(new string('✯', CurrentUser.Overall))
+        </span>
+        </p>
 
-<p>
-    Please add your orders. This amount should at most add up to your team star power, which is <strong>@starPower</strong>.
-</p>
+        <p>
+            Please add your orders. This amount should at most add up to your team star power, which is <strong>@starPower</strong>.
+        </p>
 
-<h3>Defendable Territories</h3>
-<RadzenDataGrid Data="@defendableTerritories"
-                TItem="TerritoryOwnershipWithNeighbor"
-                ShowPagingSummary="true"
-                AllowFiltering="true"
-                AllowSorting="true"
-                AllowPaging="true"
-                PageSize="@pageSize"
-                PageSizeOptions="@pagingOptions">
-    <Columns>
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory" />
+        <h3>Defendable Territories</h3>
+        <RadzenDataGrid Data="@defendableTerritories"
+                        TItem="TerritoryOwnershipWithNeighbor"
+                        Style="@($"--pager-color:{CurrentUser.Color};")"
+                        ShowPagingSummary="true"
+                        AllowFiltering="true"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        PageSize="@pageSize"
+                        PageSizeOptions="@pagingOptions">
+            <Columns>
+                <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory" />
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Neighbors and Owners">
-            <Template Context="territory">
-                @{
-                    var opposingNeighbors = territory.NeighborList
-                    .Where(n => n.Owner != CurrentUser.Team)
-                    .ToList();
-                }
-
-                @if (opposingNeighbors.Any())
-                {
-                    <ul>
-                        @foreach (var neighbor in opposingNeighbors)
-                        {
-                            <li>@neighbor.Name (@neighbor.Owner)</li>
+                <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Title="Neighbors and Owners">
+                    <Template Context="territory">
+                        @{
+                            var opposingNeighbors = territory.NeighborList
+                            .Where(n => n.Owner != CurrentUser.Team)
+                            .ToList();
                         }
-                    </ul>
-                }
-                else
-                {
-                    <em>No opposing neighbors</em>
-                }
-            </Template>
-        </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="StarPowerAllocation" Title="Star Power">
-            <Template Context="territory">
-                <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
-                               TValue="int"
-                               Style="@($"--arrow-color:{CurrentUser.Color}; width:100%;")"
-                               Min="0"
-                               Max="@starPower"/>
-            </Template>
-        </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
-            <Template Context="territory">
-                <RadzenDropDown @bind-Value="territory.Tier"
-                                Data="@tierOptions"
-                                Style="width:100%"
-                                AllowClear="false" />
-            </Template>
-        </RadzenDataGridColumn>
+                        @if (opposingNeighbors.Any())
+                        {
+                            <ul>
+                                @foreach (var neighbor in opposingNeighbors)
+                                {
+                                    <li>@neighbor.Name (@neighbor.Owner)</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <em>No opposing neighbors</em>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Property="StarPowerAllocation" Title="Star Power">
+                    <Template Context="territory">
+                        <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
+                                       TValue="int"
+                                       Style="@($"--arrow-color:{CurrentUser.Color}; width:100%;")"
+                                       Min="0"
+                                       Max="@starPower"/>
+                    </Template>
+                </RadzenDataGridColumn>
 
-    </Columns>
-</RadzenDataGrid>
+                <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
+                    <Template Context="territory">
+                        <RadzenDropDown @bind-Value="territory.Tier"
+                                        Data="@tierOptions"
+                                        Style="width:100%"
+                                        AllowClear="false" />
+                    </Template>
+                </RadzenDataGridColumn>
 
-<p>
-    Defending Allocation Total: <strong>@TotalDefendable</strong>
-</p>
+            </Columns>
+        </RadzenDataGrid>
 
+        <p>
+            Defending Allocation Total: <strong>@TotalDefendable</strong>
+        </p>
 
-<br />
+        <br />
 
-<h3>Attackable Territories</h3>
-<RadzenDataGrid Data="@attackableTerritories" 
-                TItem="TerritoryOwnershipWithNeighbor"
-                ShowPagingSummary="true" 
-                AllowFiltering="true"
-                AllowSorting="true" 
-                AllowPaging="true" 
-                PageSize="@pageSize" 
-                PageSizeOptions="@pagingOptions">
-    <Columns>
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory">
-            <Template Context="n">@n.Name</Template>
-        </RadzenDataGridColumn>
+        <h3>Attackable Territories</h3>
+        <RadzenDataGrid Data="@attackableTerritories" 
+                        TItem="TerritoryOwnershipWithNeighbor"
+                        Style="@($"--pager-color:{CurrentUser.Color};")"
+                        ShowPagingSummary="true" 
+                        AllowFiltering="true"
+                        AllowSorting="true" 
+                        AllowPaging="true" 
+                        PageSize="@pageSize" 
+                        PageSizeOptions="@pagingOptions">
+            <Columns>
+                <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory">
+                    <Template Context="n">@n.Name</Template>
+                </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tname" Title="Owner">
-            <Template Context="n">@n.Tname</Template>
-        </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tname" Title="Owner">
+                    <Template Context="n">@n.Tname</Template>
+                </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn Property="StarPowerAllocation" Title="Star Power">
-            <Template Context="territory">
-                <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
-                               TValue="int"
-                               Style="@($"--arrow-color:{CurrentUser.Color}; width:100%;")"
-                               Min="0"
-                               Max="@starPower"/>
-            </Template>
-        </RadzenDataGridColumn>
-
-
-        <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
-            <Template Context="territory">
-                <RadzenDropDown @bind-Value="territory.Tier"
-                                Data="@tierOptions"
-                                Style="width:100%"
-                                AllowClear="false" />
-            </Template>
-        </RadzenDataGridColumn>
-
-    </Columns>
-</RadzenDataGrid>
-
-<p>
-    Attacking Allocation Total: <strong>@TotalAttackable</strong>
-</p>
-
-<p style="font-size:1.2em;">
-    Total Star Power Used: <strong>@TotalStarPowerUsed</strong> / @starPower
-</p>
+                <RadzenDataGridColumn Property="StarPowerAllocation" Title="Star Power">
+                    <Template Context="territory">
+                        <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
+                                       TValue="int"
+                                       Style="@($"--arrow-color:{CurrentUser.Color}; width:100%;")"
+                                       Min="0"
+                                       Max="@starPower"/>
+                    </Template>
+                </RadzenDataGridColumn>
 
 
-<br />
-<RadzenButton Text="Submit Orders"
-              Icon="save"
-               Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
-              Click="@SubmitOrderAllocations"/>
+                <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
+                    <Template Context="territory">
+                        <RadzenDropDown @bind-Value="territory.Tier"
+                                        Data="@tierOptions"
+                                        Style="width:100%"
+                                        AllowClear="false" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+            </Columns>
+        </RadzenDataGrid>
+
+        <p>
+            Attacking Allocation Total: <strong>@TotalAttackable</strong>
+        </p>
+
+        <p style="font-size:1.2em;">
+            Total Star Power Used: <strong>@TotalStarPowerUsed</strong> / @starPower
+        </p>
+
+        <br />
+        <RadzenButton Text="Submit Orders"
+                      Icon="save"
+                      Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+            Click="@OnSubmitClick"/>
+    }
+    else
+    {
+        <div style="text-align:center; padding:20px;">
+        <h2>Your orders were successfully allocated!</h2>
+        <RadzenButton Text="View Order Progress"
+                      Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+                      Click="@(() => Navigation.NavigateTo("/admin"))" />
+        </div>
+    }
 }
+
+@if (showModal)
+{
+    <div class="modal-backdrop">
+        <div class="modal-container">
+
+            <h3>Confirm Submit?</h3>
+
+            <p>
+                Total Star Power Used: 
+                <strong>@TotalStarPowerUsed</strong> / @starPower
+            </p>
+
+            <h4>Allocation Summary</h4>
+
+            <ul class="allocation-summary">
+                @foreach (var t in AllocatedTerritories)
+                {
+                    <li>
+                        <strong>@t.Name</strong>
+                        — @t.StarPowerAllocation SP  
+                        — Tier @t.Tier
+                        — @(defendableTerritories.Contains(t) ? "Defend" : "Attack")
+                    </li>
+                }
+            </ul>
+
+            <div class="modal-buttons">
+                <button class="modal-btn"
+                        style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor};")"
+                        @onclick="ConfirmSubmit">
+                    Submit
+                </button>
+
+                <button class="modal-btn cancel" @onclick="() => showModal = false">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [CascadingParameter] 
     public CurrentUser CurrentUser { get; set; }
@@ -165,6 +220,8 @@ else
     private int starPower;
     private string? existingAllocaterUsername;
     private bool hasOrders = false;
+    private bool ordersSubmitted = false;
+    bool showModal = false;
 
     private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
 
@@ -212,6 +269,44 @@ else
         }
     }
 
+    private IEnumerable<TerritoryOwnershipWithNeighbor> AllocatedTerritories
+    {
+        get
+        {
+            var allocated = defendableTerritories
+                .Concat(attackableTerritories)
+                .Where(t => t.StarPowerAllocation > 0)
+                .OrderBy(t => t.Tier)
+                .ThenBy(t => t.Name)
+                .ToList();
+        
+            return allocated;
+        }
+    }
+
+    private void OnSubmitClick()
+    {
+        if (TotalStarPowerUsed <= 0)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "No Star Power Allocated",
+                Detail = "You must allocate at least 1 star power before submitting."
+            });
+            return;
+        }
+
+        showModal = true;
+    }
+
+    private async Task ConfirmSubmit()
+    {
+        showModal = false;
+        await SubmitOrderAllocations();
+        ordersSubmitted = true;
+    }
+
     private async Task SubmitOrderAllocations()
     {
         var userTeamId = TeamService.GetTeamIdByTeamName(CurrentUser.Team);
@@ -245,6 +340,6 @@ else
         if (result.IsError)
         {
             Navigation.NavigateTo("/error");
-        }
+        }        
     }
 }

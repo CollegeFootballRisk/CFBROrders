@@ -51,7 +51,7 @@ namespace CFBROrders.SDK.Services
 
                 throw;
             }
-            _logger.LogError($"Fetched order allocations for TeamId {teamId} on Season {seasonId}, Turn {turnId}.");
+            _logger.LogInformation($"Fetched order allocations for TeamId {teamId} on Season {seasonId}, Turn {turnId}.");
 
             return orderAllocations;
         }
