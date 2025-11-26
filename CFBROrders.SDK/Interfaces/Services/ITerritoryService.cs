@@ -13,7 +13,6 @@ namespace CFBROrders.SDK.Interfaces.Services
 
         public List<TerritoryOwnershipWithNeighbor> GetAttackableTerritories(int season, int day, string team);
 
-
-        //public List<(string Name, string Owner)> GetAttackableTerritories(string team, int season, int day);
+        public string GetTerritoryNameByTerritoryId(int? id);
     }
 }

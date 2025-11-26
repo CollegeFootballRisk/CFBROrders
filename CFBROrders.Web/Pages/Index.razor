@@ -2,8 +2,8 @@
 @layout MainLayout
 @attribute [Authorize]
 
-<h1>Welcome @CurrentUser.Username</h1>
-<p>I'm trying to test something here '</p>
+<h1>Welcome @CurrentUser.Username of Team @CurrentUser.Team</h1>
+
 
 <span class="star"
         style="@($"color:{CurrentUser.Color}; text-shadow:0 0 5px {CurrentUser.ContrastColor};")">
@@ -90,6 +90,9 @@
     [CascadingParameter]
     public CurrentUser CurrentUser { get; set; }
 
+    [Parameter, SupplyParameterFromQuery]
+    public string? edit { get; set; }
+
     private List<TerritoryOwnershipWithNeighbor> randomDefend = new();
     private List<TerritoryOwnershipWithNeighbor> randomAttack = new();
     private List<TerritoryOwnershipWithNeighbor> randomIndifferent = new();
@@ -106,6 +109,19 @@
     {
         season = CurrentUser.Season;
         turn_id = CurrentUser.Turn + 1;
+
+        if (edit == "true") return;
+
+        var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
+
+        if (existingOrder != null)
+        {
+            var territory = TerritoryService.GetTerritoryNameByTerritoryId(existingOrder.TerritoryId);
+
+            Navigation.NavigateTo($"/confirmation/{territory}");
+
+            return;
+        }
     }
 
     private async Task ShowDefendChoices()
@@ -170,7 +186,6 @@
         showIndifferent = false;
         showManual = true;
     }
-
 
     private async Task SubmitOrUpdateUserOrder(TerritoryOwnershipWithNeighbor territory)
     {

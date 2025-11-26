@@ -123,5 +123,33 @@ namespace CFBROrders.SDK.Services
             _logger.LogInformation($"Fetched attackable territories for Season {season}, Day {day}, Team {team}.");
             return territories;
         }
+
+        public string GetTerritoryNameByTerritoryId(int? id)
+        {
+            Result.Reset();
+
+            string territoryName;
+
+            try
+            {
+                territoryName = Db.SingleOrDefault<string>(
+                    @"
+                    SELECT name
+                    FROM territories 
+                    WHERE id = @0
+                    ", id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching territory name for ID {id}.");
+               
+                Result.GetException(ex);
+                
+                throw;
+            }
+            _logger.LogInformation($"Fetched territory name for ID {id}: {territoryName}.");
+            
+            return territoryName;
+        }
     }
 }
