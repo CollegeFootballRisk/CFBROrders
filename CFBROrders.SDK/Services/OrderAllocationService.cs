@@ -23,6 +23,39 @@ namespace CFBROrders.SDK.Services
 
         private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).Db;
 
+        public List<OrderAllocation> GetOrderAllocations(int teamId, int seasonId, int turnId)
+        {
+            Result.Reset();
+
+            List<OrderAllocation> orderAllocations = new();
+            try
+            {
+                orderAllocations = Db.Fetch<OrderAllocation>(
+                    @"
+                    SELECT *
+                    FROM order_allocations 
+                    WHERE team_id = @0
+                      AND season_id = @1
+                      AND turn_id = @2
+                    ",
+                    teamId,
+                    seasonId,
+                    turnId);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching order allocations for TeamId {teamId} on Season {seasonId}, Turn {turnId}.");
+
+                Result.GetException(ex);
+
+                throw;
+            }
+            _logger.LogError($"Fetched order allocations for TeamId {teamId} on Season {seasonId}, Turn {turnId}.");
+
+            return orderAllocations;
+        }
+
         public IOperationResult InsertOrderAllocation(OrderAllocation orderAllocation)
         {
             Result.Reset();

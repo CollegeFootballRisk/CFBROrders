@@ -4,6 +4,18 @@
 
 <h1>Add Orders</h1>
 
+@if (hasOrders)
+{
+    <p>
+        <strong>@existingAllocaterUsername</strong> has already submitted orders for turn @upcomingRoll.
+    </p>
+
+    <RadzenButton Text="View Existing Orders"
+                  Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
+                  Click="@(() => Navigation.NavigateTo("/admin"))" />
+}
+else 
+{
 <p>
     @CurrentUser.Username playing for @CurrentUser.Team has 
     <span class="star"
@@ -135,7 +147,7 @@
               Icon="save"
                Style="@($"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;")"
               Click="@SubmitOrderAllocations"/>
-
+}
 @code {
     [CascadingParameter] 
     public CurrentUser CurrentUser { get; set; }
@@ -149,7 +161,10 @@
 
     private int season;
     private int lastRoll;
+    private int upcomingRoll;
     private int starPower;
+    private string? existingAllocaterUsername;
+    private bool hasOrders = false;
 
     private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
 
@@ -161,14 +176,22 @@
     {
         season = CurrentUser.Season;
         lastRoll = CurrentUser.Turn;
+        upcomingRoll = lastRoll + 1;
 
         starPower = TeamService.GetTeamStarPowerForTurn(CurrentUser.Team, season, lastRoll - 1);
 
-        defendableTerritories =
-            TerritoryService.GetDefendableTerritories(season, lastRoll, CurrentUser.Team);
+        var existingOrders = OrderAllocationService.GetOrderAllocations(TeamService.GetTeamIdByTeamName(CurrentUser.Team), season, lastRoll + 1);
 
-        attackableTerritories =
-            TerritoryService.GetAttackableTerritories(season, lastRoll, CurrentUser.Team);
+        if (existingOrders.Any())
+        {
+            hasOrders = true;
+            existingAllocaterUsername = existingOrders.First().AllocaterUsername; 
+        }
+        else
+        {
+            defendableTerritories = TerritoryService.GetDefendableTerritories(season, lastRoll, CurrentUser.Team);
+            attackableTerritories = TerritoryService.GetAttackableTerritories(season, lastRoll, CurrentUser.Team);
+        }
     }
 
     private string GetNeighborDisplay(string neighborsJson)
@@ -210,7 +233,8 @@
                 TerritoryId = territory.TerritoryId,
                 OwnerId = ownerTeamIds[territory.Tname!],
                 StarpowerAllocation = territory.StarPowerAllocation,
-                Tier = territory.Tier
+                Tier = territory.Tier,
+                AllocaterUsername = CurrentUser.Username
             })
             .ToList();
 

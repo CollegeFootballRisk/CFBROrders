@@ -12,7 +12,7 @@ using NPoco;
 //     Schema:                 `public`
 //     Include Views:          `true`
 //
-//     Last Generated:         `11/19/2025 7:59:42 PM`
+//     Last Generated:         `11/26/2025 1:30:42 PM`
 
 
 
@@ -250,6 +250,8 @@ namespace CFBROrders.SDK.Models
         public int? StarpowerAllocation { get; set; }
         [Column("tier")]
         public int? Tier { get; set; }
+        [Column("allocater_username")]
+        public string AllocaterUsername { get; set; }
     } 
     [NPoco.TableName("past_turns")]
     public partial class PastTurn
