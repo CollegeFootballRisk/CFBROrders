@@ -116,5 +116,28 @@ namespace CFBROrders.SDK.Services
 
             return Result;
         }
+
+        public void RecalculateAllocationForTerritory(int seasonId, int turnId, int territoryId)
+        {
+            long used = Db.SingleOrDefault<long>(@"
+        SELECT COALESCE(SUM(starpower), 0)
+        FROM user_orders
+        WHERE season_id = @0
+          AND turn_id = @1
+          AND territory_id = @2
+    ", seasonId, turnId, territoryId);
+
+            Db.Execute(@"
+        UPDATE order_allocations
+        SET 
+            starpower_used = @3,
+            starpower_remaining = starpower_allocated - @3,
+            is_territory_full = (starpower_allocated - @3) <= 0
+        WHERE season_id = @0
+          AND turn_id = @1
+          AND territory_id = @2
+    ", seasonId, turnId, territoryId, used);
+        }
+
     }
 }

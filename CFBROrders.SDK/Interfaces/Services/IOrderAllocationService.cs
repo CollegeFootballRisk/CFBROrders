@@ -17,5 +17,7 @@ namespace CFBROrders.SDK.Interfaces.Services
         public void InsertOrderAllocationWithoutTransaction(OrderAllocation orderAllocation);
         
         public IOperationResult InsertOrderAllocations(List<OrderAllocation> orderAllocations);
+
+        public void RecalculateAllocationForTerritory(int seasonId, int turnId, int territoryId);
     }
 }

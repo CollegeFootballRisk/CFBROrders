@@ -14,12 +14,15 @@ using System.Threading.Tasks;
 
 namespace CFBROrders.SDK.Services
 {
-    public class UserOrderService(IUnitOfWork unitOfWork, IOperationResult result, ILogger<UserOrderService> logger) : IUserOrderService
+    public class UserOrderService(IUnitOfWork unitOfWork, IOperationResult result, 
+        ILogger<UserOrderService> logger, IOrderAllocationService orderAllocationService) : IUserOrderService
     {
         public IUnitOfWork UnitOfWork { get; set; } = unitOfWork;
         public IOperationResult Result { get; set; } = result;
 
         private readonly ILogger _logger = logger;
+
+        public IOrderAllocationService OrderAllocationService { get; set; } = orderAllocationService;
 
         private NPoco.IDatabase Db => ((NPocoUnitOfWork)UnitOfWork).Db;
 
@@ -60,6 +63,8 @@ namespace CFBROrders.SDK.Services
 
                 Db.Insert(userOrder);
 
+                OrderAllocationService.RecalculateAllocationForTerritory(userOrder.SeasonId, userOrder.TurnId, userOrder.TerritoryId.Value);
+
                 UnitOfWork.Commit();
             }
             catch (Exception ex)
@@ -85,7 +90,19 @@ namespace CFBROrders.SDK.Services
             {
                 UnitOfWork.BeginTransaction();
 
+                var oldUserOrder = GetUserOrder(userOrder.Username, userOrder.SeasonId, userOrder.TurnId);
+
+                var oldTerritoryId = oldUserOrder.TerritoryId;
+
                 Db.Update(userOrder);
+
+                OrderAllocationService.RecalculateAllocationForTerritory(userOrder.SeasonId, userOrder.TurnId, userOrder.TerritoryId.Value);
+
+                if (oldTerritoryId.HasValue && oldTerritoryId.Value != userOrder.TerritoryId.Value)
+                {
+                    OrderAllocationService.RecalculateAllocationForTerritory(
+                        userOrder.SeasonId, userOrder.TurnId, oldTerritoryId.Value);
+                }
 
                 UnitOfWork.Commit();
             }

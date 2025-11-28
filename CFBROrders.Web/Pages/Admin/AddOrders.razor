@@ -327,13 +327,16 @@ else
                 TeamId = userTeamId,
                 TerritoryId = territory.TerritoryId,
                 OwnerId = ownerTeamIds[territory.Tname!],
-                StarpowerAllocation = territory.StarPowerAllocation,
+                StarpowerAllocated = territory.StarPowerAllocation,
                 Tier = territory.Tier,
-                AllocaterUsername = CurrentUser.Username
+                AllocaterUsername = CurrentUser.Username,
+                StarpowerUsed = 0,
+                StarpowerRemaining = territory.StarPowerAllocation,
+                IsTerritoryFull = false
             })
             .ToList();
 
-        var total = allocations.Sum(orderAllocation => orderAllocation.StarpowerAllocation ?? 0);
+        var total = allocations.Sum(orderAllocation => orderAllocation.StarpowerAllocated ?? 0);
 
         var result = OrderAllocationService.InsertOrderAllocations(allocations);
 
