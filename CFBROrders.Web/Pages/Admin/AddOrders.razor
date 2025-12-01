@@ -8,7 +8,7 @@
 @if (hasOrders)
 {
     <p>
-        <strong>@existingAllocaterUsername</strong> has already submitted orders for turn @upcomingRoll.
+        <b>@existingAllocaterUsername</b> has already submitted orders for turn @upcomingRoll.
     </p>
 
     <RadzenButton Text="View Existing Orders"
@@ -28,7 +28,7 @@ else
         </p>
 
         <p>
-            Please add your orders. This amount should at most add up to your team star power, which is <strong>@starPower</strong>.
+            Please add your orders. This amount should at most add up to your team star power, which is <b>@starPower</b>.
         </p>
 
         <h3>Defendable Territories</h3>
@@ -90,7 +90,7 @@ else
         </RadzenDataGrid>
 
         <p>
-            Defending Allocation Total: <strong>@TotalDefendable</strong>
+            Defending Allocation Total: <b>@TotalDefendable</b>
         </p>
 
         <br />
@@ -138,11 +138,11 @@ else
         </RadzenDataGrid>
 
         <p>
-            Attacking Allocation Total: <strong>@TotalAttackable</strong>
+            Attacking Allocation Total: <b>@TotalAttackable</b>
         </p>
 
         <p style="font-size:1.2em;">
-            Total Star Power Used: <strong>@TotalStarPowerUsed</strong> / @starPower
+            Total Star Power Used: <b>@TotalStarPowerUsed</b> / @starPower
         </p>
 
         <br />
@@ -171,7 +171,7 @@ else
 
             <p>
                 Total Star Power Used: 
-                <strong>@TotalStarPowerUsed</strong> / @starPower
+                <b>@TotalStarPowerUsed</b> / @starPower
             </p>
 
             <h4>Allocation Summary</h4>
@@ -180,7 +180,7 @@ else
                 @foreach (var t in AllocatedTerritories)
                 {
                     <li>
-                        <strong>@t.Name</strong>
+                        <b>@t.Name</b>
                         — @t.StarPowerAllocation SP  
                         — Tier @t.Tier
                         — @(defendableTerritories.Contains(t) ? "Defend" : "Attack")

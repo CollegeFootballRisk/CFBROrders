@@ -1,10 +1,141 @@
-﻿@page "/admin/"
+﻿@page "/admin"
 @layout MainLayout
-@inject ILogger<Admin> _logger
 @attribute [Authorize]
 
-<h1>Admin</h1>
+<h1>Order Allocations</h1>
+
+@if (orderAllocations == null)
+{
+    <p>Loading...</p>
+}
+else if (!orderAllocations.Any())
+{
+    <div style="margin-top:20px; padding:10px; color:red; font-weight:bold;">
+        No order allocations found for turn @upcomingRoll, please check back later.
+    </div>
+}
+else
+{
+    <p>
+        Showing allocations for <b>@CurrentUser.Team</b> for Season <b>@season</b> Turn <b>@upcomingRoll</b>.
+    </p>
+
+    <h3>Tier Summary</h3>
+
+    <RadzenDataGrid Data="@tierSummaries"
+                    TItem="TierSummary"
+                    AllowFiltering="false"
+                    AllowSorting="true"
+                    AllowPaging="false">
+
+        <Columns>
+            <RadzenDataGridColumn TItem="TierSummary" Property="Tier" Title="Tier" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="Players" Title="Players" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="Quota" Title="Quota" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="AssignedStars" Title="Assigned Stars" />
+
+            <RadzenDataGridColumn TItem="TierSummary" Title="Quota %">
+                <Template Context="t">
+                    @($"{t.QuotaPercent:F1}%")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="TierSummary" Property="TotalTerritories" Title="Total Territories" />
+            <RadzenDataGridColumn TItem="TierSummary" Property="CompletedTerritories" Title="Completed Territories" />
+
+            <RadzenDataGridColumn TItem="TierSummary" Title="Completed %">
+                <Template Context="t">
+                    @($"{t.CompletedPercent:F1}%")
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+
+    @foreach (var tierGroup in orderAllocations.GroupBy(o => o.Tier).OrderBy(g => g.Key))
+    {
+        <h3>Tier @tierGroup.Key</h3>
+
+        <RadzenDataGrid Data="@tierGroup"
+                        TItem="OrderAllocation"
+                        AllowFiltering="false"
+                        AllowSorting="true"
+                        AllowPaging="false">
+
+            <Columns>
+                <RadzenDataGridColumn TItem="OrderAllocation" Property="TerritoryName" Title="Territory" />
+                <RadzenDataGridColumn TItem="OrderAllocation" Property="Tier" Title="Tier" />
+                <RadzenDataGridColumn TItem="OrderAllocation" Property="StarpowerAllocated" Title="Quota" />
+                <RadzenDataGridColumn TItem="OrderAllocation" Property="StarpowerUsed" Title="Assigned Stars" />
+            </Columns>
+        </RadzenDataGrid>
+    }
+}
 
 @code {
+    [CascadingParameter]
+    public CurrentUser CurrentUser { get; set; }
 
+    private List<OrderAllocation> orderAllocations = new();
+    private List<TierSummary> tierSummaries = new();
+
+    private int season;
+    private int lastRoll;
+    private int upcomingRoll;
+
+    protected override async Task OnInitializedAsync()
+    {
+        season = CurrentUser.Season;
+        lastRoll = CurrentUser.Turn;
+        upcomingRoll = lastRoll + 1;
+
+        var teamId = TeamService.GetTeamIdByTeamName(CurrentUser.Team);
+
+        orderAllocations = OrderAllocationService
+            .GetAllOrderAllocations(teamId, season, upcomingRoll)
+            ?.OrderBy(o => o.TerritoryName)
+            .ToList() ?? new();
+
+        BuildTierSummaries();
+    }
+
+    private void BuildTierSummaries()
+    {
+        tierSummaries = orderAllocations
+            .GroupBy(o => o.Tier)
+            .Select(g => new TierSummary
+            {
+                Tier = g.Key ?? 0,
+                Players = 0, 
+                Quota = g.Sum(x => x.StarpowerAllocated ?? 0),
+                AssignedStars = g.Sum(x => x.StarpowerUsed ?? 0),
+                TotalTerritories = g.Count(),
+                CompletedTerritories = g.Count(x => x.IsTerritoryFull),
+            })
+            .Select(s =>
+            {
+                s.QuotaPercent = s.Quota > 0
+                    ? (double)s.AssignedStars / s.Quota * 100
+                    : 0;
+
+                s.CompletedPercent = s.TotalTerritories > 0
+                    ? (double)s.CompletedTerritories / s.TotalTerritories * 100
+                    : 0;
+
+                return s;
+            })
+            .OrderBy(s => s.Tier)
+            .ToList();
+    }
+
+    public class TierSummary
+    {
+        public int Tier { get; set; }
+        public int Players { get; set; } 
+        public int Quota { get; set; }
+        public int AssignedStars { get; set; }
+        public double QuotaPercent { get; set; }
+        public int TotalTerritories { get; set; }
+        public int CompletedTerritories { get; set; }
+        public double CompletedPercent { get; set; }
+    }
 }
