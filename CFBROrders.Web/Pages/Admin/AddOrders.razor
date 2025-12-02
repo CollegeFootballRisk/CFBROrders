@@ -124,7 +124,6 @@ else
                     </Template>
                 </RadzenDataGridColumn>
 
-
                 <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
                     <Template Context="territory">
                         <RadzenDropDown @bind-Value="territory.Tier"
@@ -229,7 +228,7 @@ else
 
     private int TotalStarPowerUsed => TotalDefendable + TotalAttackable;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         season = CurrentUser.Season;
         lastRoll = CurrentUser.Turn;
@@ -279,7 +278,7 @@ else
                 .OrderBy(t => t.Tier)
                 .ThenBy(t => t.Name)
                 .ToList();
-        
+
             return allocated;
         }
     }
@@ -300,14 +299,14 @@ else
         showModal = true;
     }
 
-    private async Task ConfirmSubmit()
+    private void ConfirmSubmit()
     {
         showModal = false;
-        await SubmitOrderAllocations();
+        SubmitOrderAllocations();
         ordersSubmitted = true;
     }
 
-    private async Task SubmitOrderAllocations()
+    private void SubmitOrderAllocations()
     {
         var userTeamId = TeamService.GetTeamIdByTeamName(CurrentUser.Team);
 
@@ -343,6 +342,6 @@ else
         if (result.IsError)
         {
             Navigation.NavigateTo("/error");
-        }        
+        }
     }
 }

@@ -65,7 +65,7 @@ else
 
     private bool ordersNotReady = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         season = CurrentUser.Season;
         turn_id = CurrentUser.Turn + 1;
@@ -127,7 +127,7 @@ else
         return filtered.Take(3).ToList();
     }
 
-    private async Task ShowDefendChoices()
+    private void ShowDefendChoices()
     {
         orderOptions = FilterUserOrders(orderAllocations
             .Where(a => a.OwnerId == a.TeamId)
@@ -137,7 +137,7 @@ else
         manualOptions.Clear();
     }
 
-    private async Task ShowAttackChoices()
+    private void ShowAttackChoices()
     {
         orderOptions = FilterUserOrders(orderAllocations
             .Where(a => a.OwnerId != a.TeamId)
@@ -147,7 +147,7 @@ else
         manualOptions.Clear();
     }
 
-    private async Task ShowIndifferentChoices()
+    private void ShowIndifferentChoices()
     {
         orderOptions = FilterUserOrders(orderAllocations
             .Where(a => a.StarpowerRemaining > 0)
@@ -156,7 +156,7 @@ else
         manualOptions.Clear();
     }
 
-    private async Task ShowManualSelection()
+    private void ShowManualSelection()
     {
         var defendable = TerritoryService.GetDefendableTerritories(season, turn_id, CurrentUser.Team);
         var attackable = TerritoryService.GetAttackableTerritories(season, turn_id, CurrentUser.Team);
@@ -168,7 +168,7 @@ else
         orderOptions.Clear();
     }
 
-    private async Task SubmitOrUpdateUserOrder(OrderAllocation territory)
+    private void SubmitOrUpdateUserOrder(OrderAllocation territory)
     {
         var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
 
@@ -209,7 +209,7 @@ else
         Navigation.NavigateTo($"/confirmation/{territory.TerritoryName}");
     }
 
-    private async Task SubmitOrUpdateManualTerritory(TerritoryOwnershipWithNeighbor territory)
+    private void SubmitOrUpdateManualTerritory(TerritoryOwnershipWithNeighbor territory)
     {
         var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
 

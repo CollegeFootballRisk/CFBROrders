@@ -137,7 +137,7 @@ namespace CFBROrders.SDK.Services
                     SELECT name
                     FROM territories 
                     WHERE id = @0
-                    ", id);
+                    ", id ?? (object)DBNull.Value);
             }
             catch (Exception ex)
             {

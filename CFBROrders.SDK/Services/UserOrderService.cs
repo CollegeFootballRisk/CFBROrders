@@ -63,7 +63,7 @@ namespace CFBROrders.SDK.Services
 
                 Db.Insert(userOrder);
 
-                OrderAllocationService.RecalculateAllocationForTerritory(userOrder.SeasonId, userOrder.TurnId, userOrder.TerritoryId.Value);
+                OrderAllocationService.RecalculateAllocationForTerritory(userOrder.SeasonId, userOrder.TurnId, userOrder.TerritoryId!.Value);
 
                 UnitOfWork.Commit();
             }
@@ -96,7 +96,7 @@ namespace CFBROrders.SDK.Services
 
                 Db.Update(userOrder);
 
-                OrderAllocationService.RecalculateAllocationForTerritory(userOrder.SeasonId, userOrder.TurnId, userOrder.TerritoryId.Value);
+                OrderAllocationService.RecalculateAllocationForTerritory(userOrder.SeasonId, userOrder.TurnId, userOrder.TerritoryId!.Value);
 
                 if (oldTerritoryId.HasValue && oldTerritoryId.Value != userOrder.TerritoryId.Value)
                 {

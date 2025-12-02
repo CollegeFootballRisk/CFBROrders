@@ -82,7 +82,7 @@ else
     private int lastRoll;
     private int upcomingRoll;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         season = CurrentUser.Season;
         lastRoll = CurrentUser.Turn;
