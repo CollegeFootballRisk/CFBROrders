@@ -65,14 +65,14 @@ else
 
     private bool ordersNotReady = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         season = CurrentUser.Season;
         turn_id = CurrentUser.Turn + 1;
 
         if (edit == "true") return;
 
-        var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
+        var existingOrder = UserOrderService.GetSingleUserOrder(CurrentUser.Username, season, turn_id);
 
         if (existingOrder != null)
         {
@@ -83,7 +83,7 @@ else
             return;
         }
 
-        orderAllocations = OrderAllocationService.GetAllOrderAllocations(TeamService.GetTeamIdByTeamName(CurrentUser.Team), season, turn_id);
+        orderAllocations = OrderAllocationService.GetAllOrderAllocations(CurrentUser.TeamId, season, turn_id);
         
         if (orderAllocations == null || !orderAllocations.Any())
         {
@@ -170,7 +170,7 @@ else
 
     private void SubmitOrUpdateUserOrder(OrderAllocation territory)
     {
-        var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
+        var existingOrder = UserOrderService.GetSingleUserOrder(CurrentUser.Username, season, turn_id);
 
         if (existingOrder == null)
         {
@@ -211,7 +211,7 @@ else
 
     private void SubmitOrUpdateManualTerritory(TerritoryOwnershipWithNeighbor territory)
     {
-        var existingOrder = UserOrderService.GetUserOrder(CurrentUser.Username, season, turn_id);
+        var existingOrder = UserOrderService.GetSingleUserOrder(CurrentUser.Username, season, turn_id);
 
         if (existingOrder == null)
         {

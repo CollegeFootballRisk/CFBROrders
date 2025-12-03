@@ -236,7 +236,7 @@ else
 
         starPower = TeamService.GetTeamStarPowerForTurn(CurrentUser.Team, season, lastRoll - 1);
 
-        var existingOrders = OrderAllocationService.GetAllOrderAllocations(TeamService.GetTeamIdByTeamName(CurrentUser.Team), season, lastRoll + 1);
+        var existingOrders = OrderAllocationService.GetAllOrderAllocations(CurrentUser.TeamId, season, lastRoll + 1);
 
         if (existingOrders.Any())
         {
@@ -308,7 +308,7 @@ else
 
     private void SubmitOrderAllocations()
     {
-        var userTeamId = TeamService.GetTeamIdByTeamName(CurrentUser.Team);
+        var userTeamId = CurrentUser.TeamId;
 
         var allTerritories = defendableTerritories.Concat(attackableTerritories).ToList();
 

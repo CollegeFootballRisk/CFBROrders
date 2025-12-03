@@ -35,21 +35,18 @@ namespace CFBROrders.SDK.Services
             {
                 orderAllocations = Db.Fetch<OrderAllocation>(
                     @"
-                    SELECT *
-                    FROM order_allocations 
-                    WHERE team_id = @0
-                      AND season_id = @1
-                      AND turn_id = @2
+                    SELECT 
+                        oa.*,
+                        t.name AS TerritoryName
+                    FROM order_allocations oa
+                    JOIN territories t ON t.id = oa.territory_id
+                    WHERE oa.team_id = @0
+                      AND oa.season_id = @1
+                      AND oa.turn_id = @2
                     ",
                     teamId,
                     seasonId,
                     turnId);
-
-                foreach (var order in orderAllocations)
-                {
-                    order.TerritoryName = TerritoryService.GetTerritoryNameByTerritoryId(order.TerritoryId);
-                }
-
             }
             catch (Exception ex)
             {

@@ -72,7 +72,8 @@
             CurrentUser.ContrastColor = user.FindFirstValue("ContrastColor");
             CurrentUser.Overall = int.Parse(user.FindFirstValue("Overall"));
             CurrentUser.Season = int.Parse(user.FindFirstValue("Season"));
-            CurrentUser.Team = user.FindFirstValue("CurrentTeam"); 
+            CurrentUser.Team = user.FindFirstValue("CurrentTeam");
+            CurrentUser.TeamId = int.Parse(user.FindFirstValue("TeamId"));
             CurrentUser.Turn = int.Parse(user.FindFirstValue("Turn"));
             CurrentUser.Username = user.FindFirstValue("Username");
 

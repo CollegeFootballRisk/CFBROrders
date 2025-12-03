@@ -100,6 +100,7 @@ namespace CFBROrders.Web.Endpoints
                     new ("Overall", UserService.GetOverallByUserId(user.Id).ToString()),
                     new ("Platform", user.Platform ?? ""),
                     new ("Season", season.ToString()),
+                    new ("TeamId", user.CurrentTeam.ToString()),
                     new ("Turn", turn.ToString()),
                     new ("UserId", user.Id.ToString()),
                     new ("Username", user.Uname ?? ""),

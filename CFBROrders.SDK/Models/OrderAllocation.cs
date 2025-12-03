@@ -1,6 +1,7 @@
 ﻿using NPoco;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -10,7 +11,7 @@ namespace CFBROrders.SDK.Models
 {
     public partial class OrderAllocation
     {
-        [Ignore]
+        [ResultColumn]
         public string TerritoryName { get; set; }
     }
 }
