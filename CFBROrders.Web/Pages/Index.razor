@@ -75,17 +75,18 @@ else
         season = CurrentUser.Season;
         turn_id = CurrentUser.Turn + 1;
 
-        if (edit == "true") return;
-
-        var existingOrder = UserOrderService.GetSingleUserOrder(CurrentUser.Username, season, turn_id);
-
-        if (existingOrder != null)
+        if (edit != "true")
         {
-            var territory = TerritoryService.GetTerritoryNameByTerritoryId(existingOrder.TerritoryId);
+            var existingOrder = UserOrderService.GetSingleUserOrder(CurrentUser.Username, season, turn_id);
 
-            Navigation.NavigateTo($"/confirmation/{territory}");
+            if (existingOrder != null)
+            {
+                var territory = TerritoryService.GetTerritoryNameByTerritoryId(existingOrder.TerritoryId);
 
-            return;
+                Navigation.NavigateTo($"/confirmation/{territory}");
+
+                return;
+            }
         }
 
         orderAllocations = OrderAllocationService.GetAllOrderAllocations(CurrentUser.TeamId, season, turn_id);
