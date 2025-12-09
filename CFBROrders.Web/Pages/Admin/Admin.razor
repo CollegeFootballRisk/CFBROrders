@@ -67,8 +67,9 @@ else
                 <RadzenDataGridColumn TItem="OrderAllocation" Property="TerritoryName" Title="Territory">
                     <Template Context="allocation">
                         <RadzenButton Text="@allocation.TerritoryName"
-                                      Style="padding:4px;"
+                                      Style="@($"{ButtonStyle}; padding:4px;")"
                                       Click="@(args => ShowUsersAsync(allocation))" />
+
                     </Template>
                 </RadzenDataGridColumn>
 
@@ -94,6 +95,9 @@ else
     private List<OrderAllocation> orderAllocations = new();
     private List<UserOrder> userOrders = new();
     private List<TierSummary> tierSummaries = new();
+
+    private string ButtonStyle => $"background-color:{CurrentUser.Color}; color:{CurrentUser.ContrastColor}; border-radius:0;";
+
 
     private int season;
     private int lastRoll;
