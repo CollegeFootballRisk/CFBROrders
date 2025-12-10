@@ -2,6 +2,7 @@
 @layout MainLayout
 @inject DialogService DialogService
 @inject NotificationService NotificationService
+@inject IJSRuntime JS
 @attribute [Authorize]
 
 <title>Add Orders - CFBR Orders</title>
@@ -83,9 +84,11 @@ else
                 <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
                     <Template Context="territory">
                         <RadzenDropDown @bind-Value="territory.Tier"
-                                        Data="@tierOptions"
-                                        Style="width:100%"
-                                        AllowClear="false" />
+                        Data="@tierOptions"
+                        Class="tier-dropdown"
+                        Style="@($"--team-color:{CurrentUser.Color};")"
+                        AllowClear="false" />
+
                     </Template>
                 </RadzenDataGridColumn>
 
@@ -186,6 +189,14 @@ else
     private int TotalDefendable => defendableTerritories.Sum(territory => territory.StarPowerAllocation);
     private int TotalAttackable => attackableTerritories.Sum(territory => territory.StarPowerAllocation);
     private int TotalStarPowerUsed => TotalDefendable + TotalAttackable;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("setTeamColor", CurrentUser.Color);
+        }
+    }
 
     protected override void OnInitialized()
     {

@@ -48,3 +48,15 @@ body {
     overflow-y: auto;
     text-align: left;
 }
+
+.rz-dropdown-item.rz-state-highlight {
+    background-color: var(--team-color) !important;
+}
+
+.rz-dropdown-panel {
+    --team-color: inherit !important;
+}
+
+.rz-dropdown-item:hover {
+    background-color: var(--team-color) !important;
+}
