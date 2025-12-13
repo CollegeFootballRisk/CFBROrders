@@ -112,7 +112,7 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while fetching starpower for {tname}: Season {season}, Day {day}");
-                
+
                 Result.GetException(ex);
 
                 throw;

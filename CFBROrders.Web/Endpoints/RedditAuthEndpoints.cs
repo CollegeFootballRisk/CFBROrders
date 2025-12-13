@@ -18,7 +18,7 @@ namespace CFBROrders.Web.Endpoints
                 await ctx.ChallengeAsync("Reddit", new AuthenticationProperties { RedirectUri = "/signin-reddit?ReturnUrl=" + returnUrl });
             });
 
-            app.MapGet("/signin-reddit", async (HttpContext ctx, ITeamService TeamService, 
+            app.MapGet("/signin-reddit", async (HttpContext ctx, ITeamService TeamService,
                 ITurnInfoService TurnInfoService, IUserService UserService) =>
             {
                 var logger = NLog.LogManager.GetCurrentClassLogger();

@@ -61,13 +61,13 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while fetching all turns for season: {season}");
-                
+
                 Result.GetException(ex);
-                
+
                 throw;
             }
             _logger.LogInformation($"Fetched all turns for season: {season}");
-            
+
             return turns;
         }
 
@@ -79,7 +79,7 @@ namespace CFBROrders.SDK.Services
 
             try
             {
-                turnId = Db.SingleOrDefault <int>(
+                turnId = Db.SingleOrDefault<int>(
                     @"SELECT id
                       FROM turninfo 
                       WHERE complete = 'true' AND active = 'false' 
@@ -112,9 +112,9 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while fetching season for turnId: {turnId}");
-                
+
                 Result.GetException(ex);
-                
+
                 throw;
             }
             _logger.LogInformation($"Fetched season for turnId: {turnId}");
@@ -136,9 +136,9 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while fetching day for turnId: {turnId}");
-                
+
                 Result.GetException(ex);
-                
+
                 throw;
             }
             _logger.LogInformation($"Fetched day for turnId: {turnId}");

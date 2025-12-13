@@ -24,19 +24,19 @@ else
 
     <RadzenButton Text="I want to Attack"
                   Click="@ShowAttackChoices"
-                  class="choice-btn"/>
+                  class="choice-btn" />
 
     <RadzenButton Text="I want to Defend"
                   Click="@ShowDefendChoices"
-                  class="choice-btn"/>
+                  class="choice-btn" />
 
     <RadzenButton Text="I want to manually pick my territory"
-                  Click="@ShowManualSelection" 
-                  class="choice-btn"/>
+                  Click="@ShowManualSelection"
+                  class="choice-btn" />
 
     <RadzenButton Text="Pick for me"
                   Click="@ShowIndifferentChoices"
-                  class="choice-btn"/>
+                  class="choice-btn" />
 }
 
 @if (manualOptions?.Any() == true)
@@ -88,7 +88,7 @@ else
         }
 
         orderAllocations = OrderAllocationService.GetAllOrderAllocations(CurrentUser.TeamId, season, turn_id);
-        
+
         if (orderAllocations == null || !orderAllocations.Any())
         {
             ordersNotReady = true;
@@ -102,7 +102,7 @@ else
         {
             <div class="margin-top-20">
                 <RadzenButton Text="@territory.TerritoryName"
-                                Click="@(args => SubmitOrUpdateUserOrder(territory))" />
+                              Click="@(args => SubmitOrUpdateUserOrder(territory))" />
             </div>
         }
     };
@@ -190,7 +190,7 @@ else
                 TurnId = turn_id,
                 Team = CurrentUser.Team,
                 TerritoryId = territory.TerritoryId,
-                Starpower = CurrentUser.Overall,   
+                Starpower = CurrentUser.Overall,
             };
 
             var result = UserOrderService.InsertUserOrder(userOrder);

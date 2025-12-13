@@ -17,15 +17,15 @@
     <RadzenButton Text="View Existing Orders"
                   Click="@(() => Navigation.NavigateTo("/admin"))" />
 }
-else 
+else
 {
     @if (!ordersSubmitted)
     {
         <p>
-        <b>@CurrentUser.Username</b> playing for <b>@CurrentUser.Team:</b> 
-        <span class="star">
-            @(new string('✯', CurrentUser.Overall))
-        </span>
+            <b>@CurrentUser.Username</b> playing for <b>@CurrentUser.Team:</b>
+            <span class="star">
+                @(new string('✯', CurrentUser.Overall))
+            </span>
         </p>
 
         <p>
@@ -72,17 +72,17 @@ else
                         <RadzenNumeric @bind-Value="territory.StarPowerAllocation"
                                        TValue="int"
                                        Class="full-width"
-                                       Min="0" 
-                                       Max="@starPower"/>
+                                       Min="0"
+                                       Max="@starPower" />
                     </Template>
                 </RadzenDataGridColumn>
 
                 <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Tier" Title="Tier">
                     <Template Context="territory">
                         <RadzenDropDown @bind-Value="territory.Tier"
-                        Data="@tierOptions"
-                        Class="full-width"
-                        AllowClear="false" />
+                                        Data="@tierOptions"
+                                        Class="full-width"
+                                        AllowClear="false" />
 
                     </Template>
                 </RadzenDataGridColumn>
@@ -97,13 +97,13 @@ else
         <br />
 
         <h3>Attackable Territories</h3>
-        <RadzenDataGrid Data="@attackableTerritories" 
+        <RadzenDataGrid Data="@attackableTerritories"
                         TItem="TerritoryOwnershipWithNeighbor"
-                        ShowPagingSummary="true" 
+                        ShowPagingSummary="true"
                         AllowFiltering="true"
-                        AllowSorting="true" 
-                        AllowPaging="true" 
-                        PageSize="@pageSize" 
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        PageSize="@pageSize"
                         PageSizeOptions="@pagingOptions">
             <Columns>
                 <RadzenDataGridColumn TItem="TerritoryOwnershipWithNeighbor" Property="Name" Title="Territory">
@@ -120,7 +120,7 @@ else
                                        TValue="int"
                                        class="full-width"
                                        Min="0"
-                                       Max="@starPower"/>
+                                       Max="@starPower" />
                     </Template>
                 </RadzenDataGridColumn>
 
@@ -147,20 +147,20 @@ else
         <br />
         <RadzenButton Text="Submit Orders"
                       Icon="save"
-            Click="@OnSubmitClick"/>
+                      Click="@OnSubmitClick" />
     }
     else
     {
         <div class="centered-box">
-        <h2>Your orders were successfully allocated!</h2>
-        <RadzenButton Text="View Order Progress"
-                      Click="@(() => Navigation.NavigateTo("/admin"))" />
+            <h2>Your orders were successfully allocated!</h2>
+            <RadzenButton Text="View Order Progress"
+                          Click="@(() => Navigation.NavigateTo("/admin"))" />
         </div>
     }
 }
 
 @code {
-    [CascadingParameter] 
+    [CascadingParameter]
     public CurrentUser CurrentUser { get; set; }
 
     private List<TerritoryOwnershipWithNeighbor> defendableTerritories = new();
@@ -195,7 +195,7 @@ else
         if (existingOrders.Any())
         {
             hasOrders = true;
-            existingAllocaterUsername = existingOrders.First().AllocaterUsername; 
+            existingAllocaterUsername = existingOrders.First().AllocaterUsername;
         }
         else
         {
@@ -254,43 +254,41 @@ else
             "Confirm Submit",
             ds => @<div>
 
-                <h3>Are you sure you want to submit these order allocations?</h3>
-                <p>
-                    Total Star Power Used: <b>@TotalStarPowerUsed</b> / @starPower
-                </p>
+            <h3>Are you sure you want to submit these order allocations?</h3>
+            <p>
+                Total Star Power Used: <b>@TotalStarPowerUsed</b> / @starPower
+            </p>
 
-                <h4>Allocation Summary</h4>
+            <h4>Allocation Summary</h4>
 
-                <ul class="allocation-summary">
-                    @foreach (var territory in AllocatedTerritories)
-                    {
-                        <li>
-                            <b>@territory.Name</b>
-                            — @territory.StarPowerAllocation SP  
-                            — Tier @territory.Tier
-                            — @(defendableTerritories.Contains(territory) ? "Defend" : "Attack")
-                        </li>
-                    }
-                </ul>
+            <ul class="allocation-summary">
+                @foreach (var territory in AllocatedTerritories)
+                {
+                    <li>
+                        <b>@territory.Name</b>
+                        — @territory.StarPowerAllocation SP
+                        — Tier @territory.Tier
+                        — @(defendableTerritories.Contains(territory) ? "Defend" : "Attack")
+                    </li>
+                }
+            </ul>
 
-                <div class="margin-top-20">
-                    <RadzenButton 
-                        Text="Submit"
-                        Click="() => { ConfirmSubmit(); ds.Close(); }" />
+            <div class="margin-top-20">
+                <RadzenButton Text="Submit"
+                              Click="() => { ConfirmSubmit(); ds.Close(); }" />
 
-                    <RadzenButton 
-                        Text="Cancel"
-                        class="cancel-btn"
-                        Click="() => ds.Close()" />
-                </div>
+                <RadzenButton Text="Cancel"
+                              class="cancel-btn"
+                              Click="() => ds.Close()" />
+            </div>
 
-            </div>,
-            new DialogOptions()
-            {
-                Width = "650px",
-                Height = "auto",
-                CloseDialogOnOverlayClick = true
-            }
+        </div>,
+        new DialogOptions()
+        {
+            Width = "650px",
+            Height = "auto",
+            CloseDialogOnOverlayClick = true
+        }
         );
     }
 

@@ -44,7 +44,7 @@ namespace CFBROrders.SDK.Services
                 throw;
             }
             _logger.LogInformation("Success getting all users");
-            
+
             return users;
         }
 
@@ -67,13 +67,13 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting user with platform: {platform} and uname: {uname}");
-                
+
                 Result.GetException(ex);
 
                 throw;
             }
             _logger.LogInformation($"Success getting user with platform: {platform} and uname: {uname}");
-            
+
             return user;
         }
 
@@ -93,13 +93,13 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting overall for user with id {userId}");
-                
+
                 Result.GetException(ex);
-                
+
                 throw;
             }
             _logger.LogInformation($"Success getting overall for user with id {userId}");
-            
+
             return overall;
         }
 

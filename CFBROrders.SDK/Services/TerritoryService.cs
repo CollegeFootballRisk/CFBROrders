@@ -142,13 +142,13 @@ namespace CFBROrders.SDK.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error fetching territory name for ID {id}.");
-               
+
                 Result.GetException(ex);
-                
+
                 throw;
             }
             _logger.LogInformation($"Fetched territory name for ID {id}: {territoryName}.");
-            
+
             return territoryName;
         }
     }
