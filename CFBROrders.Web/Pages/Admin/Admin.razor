@@ -8,7 +8,6 @@
 <title>Admin - CFBR Orders</title>
 
 <h1>Order Allocations</h1>
-
 <div style="margin-bottom: 20px; display:flex; gap:20px; align-items:center;">
     <div>
         <label><b>Season:</b></label>
@@ -16,7 +15,6 @@
                         Data="@availableSeasons"
                         Change="OnSeasonChanged"
                         Style="width: 150px;" />
-
     </div>
 
     <div>
@@ -58,11 +56,11 @@ else
                 <Template Context="t">
                     @{
                         var percent = t.QuotaPercent;
+                        var zeroClass = percent == 0 ? "progress-zero" : null;
                     }
-
-                    <div class="progress-wrapper">
+                    <div class="@zeroClass" style="--progress-color: @GetProgressColor(percent);">
                         <RadzenProgressBar Value="@Math.Round(percent, 2)"
-                                           Style="height:20px" />
+                                           Style="@(percent == 0  ? "background-color: #ba0c2f;" : null)" />
                     </div>
                 </Template>
             </RadzenDataGridColumn>
@@ -74,11 +72,11 @@ else
                 <Template Context="t">
                     @{
                         var percent = t.CompletedPercent;
+                        var zeroClass = percent == 0 ? "progress-zero" : null;
                     }
-
-                    <div class="progress-wrapper">
-                        <RadzenProgressBar Value="@Math.Round(percent, 2)"
-                                           Style="height:20px" />
+                    <div class="@zeroClass" style="--progress-color: @GetProgressColor(percent);">
+                        <RadzenProgressBar Value="@Math.Round(percent, 2)" 
+                                           Style="@(percent == 0  ? "background-color: #ba0c2f;" : null)" />
                     </div>
                 </Template>
             </RadzenDataGridColumn>
@@ -100,7 +98,7 @@ else
                     <Template Context="allocation">
                         <RadzenButton Text="@allocation.TerritoryName"
                                       Click="@(args => ShowUsersAsync(allocation))" />
-                                      
+
                     </Template>
                 </RadzenDataGridColumn>
 
@@ -111,16 +109,15 @@ else
                     <Template Context="allocation">
                         @{
                             var percent = allocation.StarpowerAllocated.HasValue && allocation.StarpowerAllocated > 0
-                            ? ((double)(allocation.StarpowerUsed ?? 0) / allocation.StarpowerAllocated.Value) * 100
-                            : 0;
-
-                            var isOver = percent > 100;
+                                            ? ((double)(allocation.StarpowerUsed ?? 0) / allocation.StarpowerAllocated.Value) * 100
+                                            : 0;
+                            var zeroClass = percent == 0 ? "progress-zero" : null;
                         }
 
-                        <RadzenProgressBar Value="@Math.Round(percent, 2)"
-                                           Style="height:18px"
-                                           BarStyle="@(isOver ? "background-color:#e53935" : null)">
-                        </RadzenProgressBar>
+                        <div class="@zeroClass" style="--progress-color: @(GetProgressColor(percent));">
+                            <RadzenProgressBar Value="@Math.Round(percent, 2)"
+                                               Style="@(percent == 0  ? "background-color: #ba0c2f;" : null)" />
+                        </div>
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -161,6 +158,17 @@ else
         LoadAllocations();
     }
 
+    private string GetProgressColor(double percent)
+    {
+        if (percent >= 100)
+            return "var(--team-color)";
+
+        if (percent >= 66)
+            return "#fbc02d";
+
+        return "#ba0c2f";
+    }
+    
     private void LoadAllocations()
     {
         orderAllocations = OrderAllocationService

@@ -1,5 +1,4 @@
-﻿/* #region Global Scrollbar Styling */
-/* Webkit Browsers (Chrome, Edge, Safari) */
+﻿/* #region Scrollbar */
 ::-webkit-scrollbar {
   width: 16px;
   height: 16px;
@@ -14,14 +13,12 @@
   border-radius: 6px;
 }
 
-/* Firefox */
 * {
-  scrollbar-width: thin;
   scrollbar-color: var(--team-color) #f1f1f1;
 }
 
 /* #endregion */
-/* #region Base / Reset / Typography */
+/* #region Base Typography */
 html {
   font-size: 14px;
   position: relative;
@@ -89,7 +86,7 @@ h1, h2, body {
 }
 
 /* #endregion */
-/* #region Layout and Utility Classes */
+/* #region Layout  */
 .full-width {
   width: 100%;
 }
@@ -128,6 +125,17 @@ h1, h2, body {
   padding: 10px;
   color: #ff0000;
   font-weight: bold;
+}
+
+/* #endregion */
+/* #region Progress Bars */
+.rz-progressbar-determinate.rz-progressbar-primary .rz-progressbar-value {
+  background-color: var(--progress-color, var(--team-color)) !important;
+}
+
+.progress-zero .rz-progressbar-label-value {
+  color: #ffffff !important;
+  opacity: 1 !important;
 }
 
 /* #endregion */
