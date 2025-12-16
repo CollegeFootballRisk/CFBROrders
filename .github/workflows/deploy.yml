@@ -15,14 +15,18 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.x' 
+        dotnet-version: '8.0.x'
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
     
     - name: Restore dependencies
       run: dotnet restore
     
-    - name: Publish
-      run: dotnet publish -c Release -o ./publish
-    
-    - name: Deploy to IIS via Web Deploy
+    - name: Build and Deploy with MSBuild
       run: |
-        dotnet publish -c Release /p:PublishProfile="${{ secrets.PUBLISH_PROFILE }}" /p:Password="${{ secrets.WEBDEPLOY_PASSWORD }}"
+        msbuild CFBROrders.Web/CFBROrders.Web.csproj `
+          /p:Configuration=Release `
+          /p:DeployOnBuild=true `
+          /p:PublishProfile=site45563-WebDeploy `
+          /p:Password="${{ secrets.WEBDEPLOY_PASSWORD }}"
