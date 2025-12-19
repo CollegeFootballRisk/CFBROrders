@@ -28,5 +28,5 @@ jobs:
         msbuild CFBROrders.Web/CFBROrders.Web.csproj `
           /p:Configuration=Release `
           /p:DeployOnBuild=true `
-          /p:PublishProfile=CFBROrders-Deploy-To-Test`
+          /p:PublishProfile=CFBROrders-Deploy-To-Test `
           /p:Password="${{ secrets.WEBDEPLOY_PASSWORD }}"
