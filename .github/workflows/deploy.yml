@@ -28,5 +28,5 @@ jobs:
         msbuild CFBROrders.Web/CFBROrders.Web.csproj `
           /p:Configuration=Release `
           /p:DeployOnBuild=true `
-          /p:PublishProfile=site45563-WebDeploy `
+          /p:PublishProfile=site47550-WebDeploy `
           /p:Password="${{ secrets.WEBDEPLOY_PASSWORD }}"
