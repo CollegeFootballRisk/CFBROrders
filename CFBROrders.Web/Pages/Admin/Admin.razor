@@ -14,7 +14,7 @@
         <RadzenDropDown @bind-Value="selectedSeason"
                         Data="@availableSeasons"
                         Change="OnSeasonChanged"
-                        Style="width: 150px;" />
+                        class="rz-dropdown-pill" />
     </div>
 
     <div>
@@ -22,7 +22,7 @@
         <RadzenDropDown @bind-Value="selectedTurn"
                         Data="@availableTurns"
                         Change="OnTurnChanged"
-                        Style="width: 150px;" />
+                        class="rz-dropdown-pill" />
     </div>
 </div>
 
@@ -225,23 +225,25 @@ else
 
         @if (selectedUserOrders.Any())
         {
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Starpower</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var userOrder in selectedUserOrders)
-                        {
-                            <tr>
-                                <td>@userOrder.Username</td>
-                                <td>@userOrder.Starpower</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <RadzenDataGrid Data="@selectedUserOrders"
+                                TItem="UserOrder"
+                                AllowFiltering="false"
+                                AllowSorting="true"
+                                AllowPaging="false"
+                                Class="rz-datatable-striped">
+
+                    <Columns>
+                        <RadzenDataGridColumn TItem="UserOrder"
+                                              Property="Username"
+                                              Title="User" />
+
+                        <RadzenDataGridColumn TItem="UserOrder"
+                                              Property="Starpower"
+                                              Title="Starpower"
+                                              TextAlign="TextAlign.Right" />
+                    </Columns>
+
+                </RadzenDataGrid>
         }
         else
         {

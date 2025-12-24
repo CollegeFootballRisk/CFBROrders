@@ -1,0 +1,73 @@
+﻿@page "/settings"
+@inject ILogger<Settings> _logger
+@inject IJSRuntime JS
+
+<title>Settings - College Football Risk</title>
+
+<h1 class="text-center">Settings</h1>
+
+<div class="main">
+    @foreach (var setting in SettingsList)
+    {
+        <hr />
+        <div class="d-flex align-items-center">
+
+            @if (setting.Type == SettingType.Boolean)
+            {
+                <RadzenSwitch @bind-Value="setting.BoolValue"
+                              Change="@(value => OnBoolChange(value, setting.Name))"
+                              Class="setting-control"/>
+            }
+            else if (setting.Type == SettingType.Select)
+            {
+                <RadzenDropDown TValue="string"
+                                Data="@setting.Options"
+                                @bind-Value="setting.SelectedValue"
+                                Change="@(value => OnSelectChange((string)value, setting.Name))"
+                                Class="rz-dropdown-pill setting-control" />
+
+            }
+            <span>@setting.Label</span>
+
+        </div>
+    }
+</div>
+
+@code {
+
+    private List<SettingOption> SettingsList = new()
+    {
+        new SettingOption("lightmode", "Light Mode"),
+        new SettingOption(
+            "branding", "Which branding to use",
+            new List<string> { "Normal - Rainbow", "Goose", "Pizza", "Classic", "Normal - White" },
+            "Normal - Rainbow"
+        ),
+        new SettingOption(
+            "seasonalbackground", "Seasonal background effects",
+            new List<string> { "None", "Valentines", "Spring", "Summer", "Fall", "Halloween", "Thanksgiving", "Winter"},
+            "None")
+    };
+
+    private async Task OnBoolChange(bool? value, string name)
+    {
+        if (name == "lightmode")
+        {
+            var theme = value == true ? "light" : "dark";
+            await JS.InvokeVoidAsync("setTheme", theme);
+        }
+    }
+
+    private async Task OnSelectChange(string? selectedValue, string name)
+    {
+        if (name == "branding" && !string.IsNullOrEmpty(selectedValue))
+        {
+            await JS.InvokeVoidAsync("setBranding", selectedValue);
+        }
+        else if (name == "seasonalbackground" && !string.IsNullOrEmpty(selectedValue))
+        {
+            var effect = selectedValue == "None" ? "stop" : selectedValue;
+            await JS.InvokeVoidAsync("setSeasonalEffects", effect);
+        }
+    }
+}

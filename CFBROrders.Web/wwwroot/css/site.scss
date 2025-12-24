@@ -33,12 +33,12 @@ html {
 
 body {
     margin-bottom: 60px;
+    background-color: var(--bg-color) !important;
 }
 
-h1, h2, body {
-    color: #000000 !important;
+h1, h2, h3, h4, body, .rz-dialog-title {
+    color: var(--text-color) !important;
 }
-
 /* #endregion */
 
 /* #region Buttons & Focus States */
@@ -47,7 +47,7 @@ h1, h2, body {
 .btn-link.nav-link:focus,
 .form-control:focus,
 .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem var(--white), 0 0 0 0.25rem var(--dark-blue);
 }
 
 .rz-button {
@@ -65,17 +65,57 @@ h1, h2, body {
 }
 
 .cancel-btn {
-    background-color: #ff0000 !important;
+    background-color: var(--cancel) !important;
+}
+
+.rz-switch.rz-switch-checked .rz-switch-circle {
+    background: var(--checked) !important;
 }
 
 .rz-pager-page.rz-state-active {
     color: var(--team-color) !important;
 }
+
+.rz-dropdown-pill {
+    border-radius: 50px !important;
+    height: 2rem !important;
+    width: 150px;
+    background-color: var(--light-grey) !important;
+    color: var(--black) !important;
+}
+
+.rz-dropdown-pill .rz-dropdown-label {
+    display: flex;
+    align-items: center;
+}
+
+.rz-dropdown-item.rz-state-highlight, .rz-dropdown-items.rz-state-highlight, .rz-dropdown-item:hover {
+    color: var(--white) !important;
+    background-color: var(--team-color) !important;
+}
+
+.rz-dropdown-list {
+    color: var(--black) !important;
+    background-color: var(--light-grey) !important;
+}
+
+.setting-control {
+    margin-right: 0.5rem;
+}
+
 /* #endregion */
 
 /* #region Navigations & Dropdowns */
-.navbar .navbar-nav .nav-link:hover {
-    color: #000000 !important;
+
+//.navbar {
+//    background: linear-gradient(to right, var(--dark-blue), var(--light-blue));
+//}
+
+.navbar-nav .nav-text {
+    border-bottom: 2px dashed transparent;
+}
+.navbar-nav .nav-link:hover .nav-text {
+    color: var(--black) !important;
 }
 
 .rz-dropdown-item.rz-state-highlight,
@@ -87,6 +127,92 @@ h1, h2, body {
     --team-color: inherit !important;
 }
 /* #endregion */
+
+/*#region Table */
+.rz-datatable {
+    background-color: var(--grid-bg) !important;
+    color: var(--grid-text) !important;
+    border: 1px solid var(--grid-border) !important;
+}
+
+.rz-datatable thead th {
+    background-color: var(--grid-header-bg) !important;
+    color: var(--grid-text) !important;
+    border-color: var(--grid-border) !important;
+    font-weight: 600;
+}
+
+.rz-datatable td {
+    border-color: var(--grid-border) !important;
+}
+
+.rz-datatable tbody tr {
+    background-color: var(--grid-bg) !important;
+}
+
+.rz-datatable tbody tr:hover {
+    background-color: var(--grid-hover) !important;
+}
+
+.rz-datatable input,
+.rz-datatable select,
+.rz-datatable .rz-numeric,
+.rz-datatable .rz-dropdown {
+    background-color: var(--grid-header-bg) !important;
+    color: var(--grid-text) !important;
+    border-color: var(--grid-border) !important;
+}
+
+.rz-dropdown-panel {
+    background-color: var(--grid-bg) !important;
+    color: var(--grid-text) !important;
+    border-color: var(--grid-border) !important;
+}
+
+.rz-dropdown-item {
+    color: var(--black) !important;
+}
+
+.rz-dropdown-item:hover,
+.rz-dropdown-item.rz-state-highlight {
+    background-color: var(--team-color) !important;
+    color: var(--white) !important;
+}
+
+.rz-pager {
+    background-color: var(--grid-bg) !important;
+    color: var(--grid-text) !important;
+    border-color: var(--grid-border) !important;
+}
+
+.rz-pager-page, .rz-pager-next, .rz-pager-last, .rz-pager-prev, .rz-pager-first {
+    color: var(--grid-text) !important;
+    background-color: var(--bg-color) !important;
+}
+
+.rz-pager-page.rz-state-active {
+    background-color: var(--team-color) !important;
+    color: var(--white) !important;
+}
+
+.rz-grid-table td .rz-cell-data, .rz-grid-table thead th .rz-column-title {
+    color: var(--text-color) !important;
+}
+
+.rz-grid-table-striped tbody >tr:not(.rz-expanded-row-content):nth-child(even) > td {
+    background-color: var(--even-color) !important;
+}
+
+.rz-pager-summary {
+    color: var(--text-color) !important;
+}
+
+.rz-dialog, .rz-dialog-titlebar {
+    background-color: var(--bg-color) !important;
+}
+
+
+/*#endregion*/
 
 /* #region Layout  */
 .full-width {
@@ -125,7 +251,7 @@ h1, h2, body {
 .nothing-found {
     margin-top: 20px;
     padding: 10px;
-    color: #ff0000;
+    color: var(--cancel);
     font-weight: bold;
 }
 /* #endregion */
@@ -136,7 +262,7 @@ h1, h2, body {
 }
 
 .progress-zero .rz-progressbar-label-value {
-    color: #ffffff !important;
+    color: var(--white) !important;
     opacity: 1 !important;
 }
 /* #endregion */

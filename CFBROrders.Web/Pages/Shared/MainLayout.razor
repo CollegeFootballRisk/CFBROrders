@@ -6,8 +6,8 @@
 
 <div class="page">
     <header>
-        <nav class="navbar navbar-expand-sm border-bottom box-shadow mb-3"
-             style="background-color:@NavbarColor; color:@NavbarContrast;">
+        <nav class="navbar navbar-expand-sm box-shadow mb-3"
+             style="@NavbarStyle; color:@NavbarContrast;">
             <div class="container-fluid d-md-inline-flex align-items-center">
                 <NavLink class="navbar-brand" href="/">
                     <img class="img-fluid" width="40" height="40" alt="Rainbow Logo"
@@ -34,6 +34,12 @@
 
                                 <li class="nav-item me-4">
                                     <NavLink class="nav-link text-white" href="/admin">Admin</NavLink>
+                                </li>
+
+                                <li class="nav-item me-4">
+                                    <NavLink class="nav-link text-white" href="/settings">
+                                        <span class="nav-text">Settings</span>
+                                    </NavLink>
                                 </li>
 
                                 <li class="nav-item me-4">
@@ -99,7 +105,21 @@
         }
     }
 
-    public string NavbarColor => string.IsNullOrWhiteSpace(CurrentUser.Color) ? "#0d6efd" : CurrentUser.Color;
+    public string NavbarStyle
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(CurrentUser.Color))
+            {
+                return "background: linear-gradient(to right, var(--dark-blue), var(--light-blue));";
+            }
+
+            return $"background-color: {CurrentUser.Color};";
+    }
+    }
+
+
+    public string NavbarColor => string.IsNullOrWhiteSpace(CurrentUser.Color) ? "linear-gradient(to right, var(--dark-blue), var(--light-blue))" : CurrentUser.Color;
 
     public string NavbarContrast => string.IsNullOrWhiteSpace(CurrentUser.ContrastColor) ? "white" : CurrentUser.ContrastColor;
 }
