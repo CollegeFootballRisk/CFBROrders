@@ -28,7 +28,10 @@ builder.Configuration
 var connectionString = builder.Configuration.GetConnectionString("CFBROrdersConnectionString")
     ?? throw new InvalidOperationException("Connection string 'CFBROrdersConnectionString' not found.");
 
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(options =>
+{
+    options.RootDirectory = "/Components";
+});
 builder.Services.AddRadzenComponents();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddDbContext<ApplicationDBContext>(options => options.UseNpgsql(connectionString));

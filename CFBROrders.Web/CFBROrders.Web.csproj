@@ -38,6 +38,10 @@
 		<ProjectReference Include="..\CFBROrders.SDK\CFBROrders.SDK.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Components\Pages\Shared\" />
+	</ItemGroup>
+
 	<Target Name="CopyAppSettingsTemplate" BeforeTargets="BeforeBuild">
 		<Copy SourceFiles="appsettingsTemplate.json" DestinationFiles="appsettings.json" Condition="!Exists('appsettings.json')" />
 	</Target>
