@@ -2,75 +2,81 @@
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/. *@
 @page "/settings"
-@inject ILogger<Settings> _logger
-@inject IJSRuntime JS
+@inject IAppSettingHandler SettingsHandler
 
 <title>Settings - College Football Risk</title>
 
 <h1 class="text-center">Settings</h1>
 
-<div class="main">
-    @foreach (var setting in SettingsList)
-    {
-        <hr />
+@if (_loaded)
+{
+    <div class="main">
+
         <div class="d-flex align-items-center">
-
-            @if (setting.Type == SettingType.Boolean)
-            {
-                <RadzenSwitch @bind-Value="setting.BoolValue"
-                              Change="@(value => OnBoolChange(value, setting.Name))"
-                              Class="setting-control"/>
-            }
-            else if (setting.Type == SettingType.Select)
-            {
-                <RadzenDropDown TValue="string"
-                                Data="@setting.Options"
-                                @bind-Value="setting.SelectedValue"
-                                Change="@(value => OnSelectChange((string)value, setting.Name))"
-                                Class="rz-dropdown-pill setting-control" />
-
-            }
-            <span>@setting.Label</span>
-
+            <RadzenSwitch @bind-Value="SettingsHandler.LightMode" Class="setting-control" />
+            <span>@GetLabel(nameof(AppSetting.LightMode))</span>
         </div>
-    }
-</div>
+        <hr />
+
+        <div class="d-flex align-items-center">
+            <RadzenDropDown @bind-Value="SettingsHandler.Branding"
+                            Data="@BrandingOptions"
+                            Class="rz-dropdown-pill setting-control" />
+            <span>@GetLabel(nameof(AppSetting.Branding))</span>
+        </div>
+        <hr />
+
+        <div class="d-flex align-items-center">
+            <RadzenDropDown @bind-Value="SettingsHandler.SeasonalBackground"
+                            Data="@SeasonalOptions"
+                            Class="rz-dropdown-pill setting-control" />
+            <span>@GetLabel(nameof(AppSetting.SeasonalBackground))</span>
+        </div>
+        <hr />
+
+    </div>
+}
 
 @code {
+    private bool _loaded;
 
-    private List<SettingOption> SettingsList = new()
-    {
-        new SettingOption("lightmode", "Light Mode"),
-        new SettingOption(
-            "branding", "Which branding to use",
-            new List<string> { "Normal - Rainbow", "Goose", "Pizza", "Classic", "Normal - White" },
-            "Normal - Rainbow"
-        ),
-        new SettingOption(
-            "seasonalbackground", "Seasonal background effects",
-            new List<string> { "None", "Valentines", "Spring", "Summer", "Fall", "Halloween", "Thanksgiving", "Winter"},
-            "Winter")
-    };
+    private List<string> BrandingOptions => GetOptions(nameof(AppSetting.Branding));
+    private List<string> SeasonalOptions => GetOptions(nameof(AppSetting.SeasonalBackground));
 
-    private async Task OnBoolChange(bool? value, string name)
+    private List<string> GetOptions(string propertyName)
     {
-        if (name == "lightmode")
+        var prop = typeof(AppSetting).GetProperty(propertyName);
+        if (prop != null)
         {
-            var theme = value == true ? "light" : "dark";
-            await JS.InvokeVoidAsync("setTheme", theme);
+            var attr = prop.GetCustomAttributes(typeof(SettingAttribute), false)
+                           .FirstOrDefault() as SettingAttribute;
+            if (attr?.Options != null)
+                return attr.Options.ToList();
         }
+        return new List<string>();
     }
 
-    private async Task OnSelectChange(string? selectedValue, string name)
+    private string GetLabel(string propertyName)
     {
-        if (name == "branding" && !string.IsNullOrEmpty(selectedValue))
+        var prop = typeof(AppSetting).GetProperty(propertyName);
+        var attr = prop?.GetCustomAttributes(typeof(SettingAttribute), false)
+                        .FirstOrDefault() as SettingAttribute;
+        return attr?.Label ?? propertyName;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
         {
-            await JS.InvokeVoidAsync("setBranding", selectedValue);
-        }
-        else if (name == "seasonalbackground" && !string.IsNullOrEmpty(selectedValue))
-        {
-            var effect = selectedValue == "None" ? "stop" : selectedValue;
-            await JS.InvokeVoidAsync("setSeasonalEffects", effect);
+            await SettingsHandler.InitializeAsync();
+
+            // Now that settings are loaded, enable rendering
+            _loaded = true;
+            StateHasChanged();
         }
     }
 }
+
+
+
+

@@ -4,6 +4,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/. *@
 @inherits LayoutComponentBase
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JS
+@inject IAppSettingHandler SettingHandler
 
 <PageTitle>CFBR Orders</PageTitle>
 
@@ -62,7 +63,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/. *@
 
             <CascadingValue Value="CurrentUser">
                 <CascadingValue Value="EST">
-                    @Body
+                    <CascadingValue Value="SettingHandler">
+                        @Body
+                    </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
 
@@ -102,12 +105,16 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/. *@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !string.IsNullOrWhiteSpace(CurrentUser.Color))
+        if (firstRender)
         {
+            // Initialize app-wide settings
+            await SettingHandler.InitializeAsync();
+
+            // Apply any default or persisted JS effects immediately
             await JS.InvokeVoidAsync("setTeamColor", CurrentUser.Color, CurrentUser.ContrastColor);
-            await JS.InvokeVoidAsync("setSeasonalEffects", "Winter");
         }
     }
+
 
     public string NavbarStyle
     {

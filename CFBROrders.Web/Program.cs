@@ -14,6 +14,7 @@ using CFBROrders.Web.Handlers;
 using CFBROrders.Web.Helpers;
 using CFBROrders.Web.Interfaces.Handlers;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 using Radzen;
@@ -64,9 +65,12 @@ builder.Services.AddScoped<IOrderAllocationService, OrderAllocationService>();
 builder.Services.AddScoped<IUserOrderService, UserOrderService>();
 builder.Services.AddScoped<ITurnInfoService, TurnInfoService>();
 
+builder.Services.AddScoped<IAppSettingHandler, AppSettingHandler>();
 builder.Services.AddSingleton<IColorHandler, ColorHandler>();
 
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<ProtectedLocalStorage>();
 
 var app = builder.Build();
 
