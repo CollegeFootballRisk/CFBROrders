@@ -180,25 +180,3 @@ window.setSeasonalEffects = (effectName) => {
 };
 
 //#endregion
-
-//#region App Settings Storage
-
-window.appSettings = {
-    get: (key) => {
-        try {
-            return localStorage.getItem(key);
-        } catch {
-            return null;
-        }
-    },
-
-    set: (key, value) => {
-        try {
-            localStorage.setItem(key, value);
-        } catch {
-            // swallow — storage may be unavailable
-        }
-    }
-};
-
-//#endregion

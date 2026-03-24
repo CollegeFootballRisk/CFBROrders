@@ -1,17 +1,22 @@
-﻿/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-using System.ComponentModel;
-using System.Text.Json;
-using Microsoft.JSInterop;
+﻿using CFBROrders.Web.Interfaces.Handlers;
 using CFBROrders.Web.Models;
-using CFBROrders.Web.Interfaces.Handlers;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.JSInterop;
+using System.Text.Json;
 
 namespace CFBROrders.Web.Handlers
 {
-    public class AppSettingHandler(IJSRuntime JS) : IAppSettingHandler
+    public class AppSettingHandler : IAppSettingHandler
     {
         private const string StorageKey = "CFBROrders.settings";
+        private readonly ProtectedLocalStorage _storage;
+        private readonly IJSRuntime _js;
+
+        public AppSettingHandler(ProtectedLocalStorage storage, IJSRuntime js)
+        {
+            _storage = storage;
+            _js = js;
+        }
 
         public AppSetting Settings { get; private set; } = new();
 
@@ -21,32 +26,34 @@ namespace CFBROrders.Web.Handlers
 
         public async Task InitializeAsync()
         {
-            var json = await JS.InvokeAsync<string>("appSettings.get", StorageKey);
+            var json = await _js.InvokeAsync<string>("localStorage.getItem", StorageKey);
 
-            if (!string.IsNullOrWhiteSpace(json))
+            if (!string.IsNullOrEmpty(json))
             {
                 try
                 {
-                    Settings = JsonSerializer.Deserialize<AppSetting>(json) ?? new();
+                    Settings = JsonSerializer.Deserialize<AppSetting>(json) ?? new AppSetting();
                 }
                 catch
                 {
-                    Settings = new();
+                    await _js.InvokeVoidAsync("localStorage.removeItem", StorageKey);
+                    Settings = new AppSetting();
                 }
+            }
+            else
+            {
+                var defaultJson = JsonSerializer.Serialize(Settings);
+                await _js.InvokeVoidAsync("localStorage.setItem", StorageKey, defaultJson);
             }
 
             Normalize();
             await ApplyAsync();
         }
 
-        public Task SetLightModeAsync(bool value) =>
-            UpdateAsync(s => s.LightMode = value);
 
-        public Task SetBrandingAsync(string value) =>
-            UpdateAsync(s => s.Branding = value);
-
-        public Task SetSeasonalBackgroundAsync(string value) =>
-            UpdateAsync(s => s.SeasonalBackground = value);
+        public Task SetLightModeAsync(bool value) => UpdateAsync(s => s.LightMode = value);
+        public Task SetBrandingAsync(string value) => UpdateAsync(s => s.Branding = value);
+        public Task SetSeasonalBackgroundAsync(string value) => UpdateAsync(s => s.SeasonalBackground = value);
 
         private async Task UpdateAsync(Action<AppSetting> update)
         {
@@ -54,24 +61,17 @@ namespace CFBROrders.Web.Handlers
             Normalize();
 
             var json = JsonSerializer.Serialize(Settings);
-            await JS.InvokeVoidAsync("appSettings.set", StorageKey, json);
+            await _js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
 
             await ApplyAsync();
         }
 
+
         private async Task ApplyAsync()
         {
-            await JS.InvokeVoidAsync(
-                "setTheme",
-                Settings.LightMode ? "light" : "dark"
-            );
-
-            await JS.InvokeVoidAsync("setBranding", Settings.Branding);
-
-            await JS.InvokeVoidAsync(
-                "setSeasonalEffects",
-                Settings.SeasonalBackground
-            );
+            await _js.InvokeVoidAsync("setTheme", Settings.LightMode ? "light" : "dark");
+            await _js.InvokeVoidAsync("setBranding", Settings.Branding);
+            await _js.InvokeVoidAsync("setSeasonalEffects", Settings.SeasonalBackground);
         }
 
         private void Normalize()
@@ -80,5 +80,4 @@ namespace CFBROrders.Web.Handlers
             Settings.SeasonalBackground ??= "None";
         }
     }
-
 }
